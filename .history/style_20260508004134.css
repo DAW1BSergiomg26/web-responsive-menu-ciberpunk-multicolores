@@ -1,0 +1,156 @@
+/* ====================== SECCIÓN TECNOLOGÍAS - EFECTO ALIEN SUPREMO ====================== */
+.tecnologias-section {
+    padding: 180px 2rem 160px;
+    position: relative;
+    overflow: hidden;
+}
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 7rem;
+    position: relative;
+}
+
+/* ====================== TÍTULO "Tecnologías Maestras" - NIVEL DIOS CÓSMICO ====================== */
+.section-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(3.4rem, 8.5vw, 6rem);
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 1.8rem;
+    position: relative;
+    display: inline-block;
+    
+    /* Gradiente animado nebular */
+    background: linear-gradient(90deg, 
+        #67f0ff, 
+        #c026d3, 
+        #f472b6, 
+        #67f0ff);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: cosmicFlow 10s linear infinite;
+    
+    text-shadow: 
+        0 0 40px rgba(103, 240, 255, 0.8),
+        0 0 80px rgba(192, 38, 211, 0.6),
+        0 0 120px rgba(244, 114, 182, 0.4);
+}
+
+/* Animación principal del título */
+@keyframes cosmicFlow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Capa holográfica / glitch sutil */
+.section-header h2::before,
+.section-header h2::after {
+    content: 'Tecnologías Maestras';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.15;
+    z-index: -1;
+}
+
+.section-header h2::before {
+    animation: glitch-1 2.5s infinite linear;
+    color: #67f0ff;
+    transform: translate(-3px, 3px);
+    clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+}
+
+.section-header h2::after {
+    animation: glitch-2 3s infinite linear;
+    color: #f472b6;
+    transform: translate(3px, -3px);
+    clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%);
+}
+
+@keyframes glitch-1 {
+    0% { transform: translate(-4px, 4px); }
+    20% { transform: translate(4px, -4px); }
+    40% { transform: translate(-2px, 2px); }
+    100% { transform: translate(-4px, 4px); }
+}
+
+@keyframes glitch-2 {
+    0% { transform: translate(4px, -4px); }
+    30% { transform: translate(-4px, 4px); }
+    70% { transform: translate(2px, -2px); }
+    100% { transform: translate(4px, -4px); }
+}
+
+/* Estrella / Símbolo flotante */
+.section-header h2::after {
+    content: '◉';
+    position: absolute;
+    font-size: 2.2rem;
+    color: #67f0ff;
+    top: -35px;
+    right: -45px;
+    animation: orbit 12s linear infinite;
+    text-shadow: 0 0 30px #67f0ff;
+    filter: drop-shadow(0 0 20px #67f0ff);
+}
+
+@keyframes orbit {
+    0%   { transform: rotate(0deg) translate(60px) rotate(0deg); }
+    100% { transform: rotate(360deg) translate(60px) rotate(-360deg); }
+}
+
+/* ====================== SUBTÍTULO - EFECTO RARIDAD CÓSMICA ====================== */
+.section-header p {
+    font-size: 1.45rem;
+    color: var(--text-muted);
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+    opacity: 0.95;
+    text-shadow: 0 0 20px rgba(192, 38, 211, 0.4);
+    
+    /* Efecto de aparición elegante + typing sutil */
+    animation: subtitleReveal 2.5s ease forwards;
+    overflow: hidden;
+}
+
+/* Línea de energía debajo del subtítulo */
+.section-header p::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #67f0ff, #c026d3, transparent);
+    box-shadow: 0 0 20px #67f0ff;
+    animation: energyLine 4s ease 1s forwards;
+}
+
+@keyframes subtitleReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    100% {
+        opacity: 0.95;
+        transform: translateY(0);
+    }
+}
+
+@keyframes energyLine {
+    0% { width: 0; }
+    70% { width: 180px; }
+    100% { width: 140px; }
+}

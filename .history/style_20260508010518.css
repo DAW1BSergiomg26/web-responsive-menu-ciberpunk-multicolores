@@ -1,0 +1,104 @@
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+    --gold: #ffd700;
+    --electric: #00f5ff;
+    --deep: #0a1428;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(180deg, #0a1428 0%, #1a2a5e 100%);
+    color: #e8f4ff;
+    overflow-x: hidden;
+}
+
+/* NAV CINEMÁTICA */
+.nav-link {
+    position: relative;
+    color: #e8f4ff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.4s ease;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -6px;
+    left: 0;
+    background: linear-gradient(to right, var(--gold), var(--electric));
+    transition: width 0.5s ease;
+    box-shadow: 0 0 15px var(--electric);
+}
+
+.nav-link:hover {
+    color: var(--gold);
+    text-shadow: 0 0 20px var(--electric);
+}
+
+.nav-link:hover::after { width: 100%; }
+
+/* RAYO RELÁMPAGO */
+.logo-icon {
+    font-size: 3.2rem;
+    animation: realLightning 3.8s infinite;
+    color: var(--gold);
+    text-shadow: 0 0 30px var(--gold), 0 0 60px var(--electric);
+}
+
+@keyframes realLightning {
+    0%, 15%, 22%, 100% { opacity: 1; transform: scale(1); }
+    10%, 18% { opacity: 0.2; transform: scale(1.3) rotate(15deg); }
+}
+
+/* PARTÍCULAS FLOTANTES (Huellas de Zeus) */
+.particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #ffd700;
+    border-radius: 50%;
+    box-shadow: 0 0 12px #ffd700;
+    animation: floatParticle linear infinite;
+    opacity: 0.6;
+}
+
+@keyframes floatParticle {
+    0% { transform: translateY(100vh) scale(0.5); }
+    100% { transform: translateY(-100px) scale(1.2); }
+}
+
+/* Secciones con efecto cinematográfico */
+section {
+    scroll-margin-top: 80px;
+}
+
+.proyectos-section, .contacto-section {
+    padding: 140px 2rem;
+    background: linear-gradient(180deg, rgba(26,42,94,0.6), rgba(10,20,40,0.9));
+}
+
+/* Más efectos cinematográficos... */
+.hero-title, .section-header h2 {
+    position: relative;
+}
+
+.hero-title::after, .section-header h2::after {
+    content: '⚡';
+    position: absolute;
+    font-size: 1.8rem;
+    top: -30px;
+    right: -50px;
+    opacity: 0.4;
+    animation: cinematicBolt 4s infinite;
+}

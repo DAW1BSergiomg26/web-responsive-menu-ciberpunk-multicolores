@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Flexora — Templo Digital del Olimpo Año 3000" />
+
+  <title>Flexora • Templo del Olimpo 3000</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+            space: ['Space Grotesk', 'sans-serif']
+          },
+          colors: {
+            gold: '#FFD700',
+            electric: '#00F5FF',
+            neon: '#C026D3',
+            deep: '#070D1F'
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="font-inter bg-deep text-slate-100 overflow-x-hidden">
+
+  <div id="embers" class="embers" aria-hidden="true"></div>
+
+  <header class="fixed top-0 left-0 z-50 w-full border-b border-gold/40 bg-deep/80 backdrop-blur-2xl">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
+
+      <a href="#inicio" class="flex items-center gap-3 font-space text-3xl font-bold tracking-tight">
+        <span id="lightning" class="divine-lightning text-4xl">⚡</span>
+        <span class="text-gradient">Flexora</span>
+      </a>
+
+      <nav class="hidden items-center gap-10 md:flex">
+        <a href="#inicio" class="nav-link">Inicio</a>
+        <a href="#tecnologias" class="nav-link">Tecnologías</a>
+        <a href="#proyectos" class="nav-link">Proyectos</a>
+        <a href="#contacto" class="nav-link">Contacto</a>
+      </nav>
+
+      <button id="hamburger" class="hamburger md:hidden" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-mobile">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <nav id="nav-mobile" class="mobile-menu md:hidden">
+      <a href="#inicio" class="mobile-link">Inicio</a>
+      <a href="#tecnologias" class="mobile-link">Tecnologías</a>
+      <a href="#proyectos" class="mobile-link">Proyectos</a>
+      <a href="#contacto" class="mobile-link">Contacto</a>
+    </nav>
+  </header>
+
+  <main class="relative z-10">
+
+    <section id="inicio" class="relative grid min-h-screen place-items-center overflow-hidden px-6 pt-28 text-center">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,215,0,0.16),transparent_35%),radial-gradient(circle_at_70%_30%,rgba(192,38,211,0.18),transparent_30%),radial-gradient(circle_at_30%_75%,rgba(0,245,255,0.13),transparent_28%)]"></div>
+
+      <div class="reveal relative z-10 mx-auto max-w-6xl">
+        <p class="mx-auto mb-7 inline-flex rounded-full border border-gold/40 bg-white/5 px-5 py-2 text-sm font-bold uppercase tracking-[0.3em] text-gold shadow-[0_0_40px_rgba(255,215,0,0.25)]">
+          🏛️ Templo del Olimpo · Año 3000
+        </p>
+
+        <h1 class="font-space text-5xl font-bold leading-tight sm:text-6xl lg:text-8xl">
+          <span class="text-gradient">El Futuro y los Dioses</span>
+          <br />
+          se unen en Código
+        </h1>
+
+        <p class="mx-auto mt-8 max-w-2xl text-lg text-cyan-100/80 sm:text-2xl">
+          Una experiencia digital sagrada donde la mitología, el diseño futurista y la tecnología chocan como rayos de Zeus.
+        </p>
+
+        <div class="mt-12 flex flex-col items-center justify-center gap-5 sm:flex-row">
+          <a href="#tecnologias" class="btn-primary">Entrar al Templo ⚡</a>
+          <a href="#proyectos" class="btn-secondary">Ver Reliquias</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="tecnologias" class="section">
+      <div class="container-page">
+        <div class="section-header reveal">
+          <h2>Tecnologías Maestras</h2>
+          <p>Arquitectura limpia, diseño visual potente y rendimiento digno del Olimpo.</p>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-3">
+          <article class="divine-card reveal">
+            <span class="card-icon">📐</span>
+            <h3>HTML5 Semántico</h3>
+            <p>Estructura clara, accesible y preparada para SEO.</p>
+            <ul>
+              <li>Accesibilidad mejorada</li>
+              <li>Etiquetas semánticas</li>
+            </ul>
+          </article>
+
+          <article class="divine-card reveal">
+            <span class="card-icon">🎨</span>
+            <h3>Tailwind + CSS</h3>
+            <p>Velocidad de desarrollo con una capa visual única.</p>
+            <ul>
+              <li>Diseño responsive</li>
+              <li>Estética personalizada</li>
+            </ul>
+          </article>
+
+          <article class="divine-card reveal">
+            <span class="card-icon">⚡</span>
+            <h3>JavaScript Ligero</h3>
+            <p>Interacciones suaves sin sobrecargar la web.</p>
+            <ul>
+              <li>Menú accesible</li>
+              <li>Animaciones optimizadas</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="proyectos" class="section bg-white/[0.025]">
+      <div class="container-page">
+        <div class="section-header reveal">
+          <h2>Proyectos Legendarios</h2>
+          <p>Reliquias digitales forjadas con fuego celestial y precisión de ingeniería.</p>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-3">
+          <article class="project-card reveal">
+            <span>🏔️</span>
+            <h3>Monte Olimpo UI</h3>
+            <p>Interfaz divina para la nueva era digital.</p>
+          </article>
+
+          <article class="project-card reveal">
+            <span>🌩️</span>
+            <h3>Rayos Digitales</h3>
+            <p>Visualizador en tiempo real de energía celestial.</p>
+          </article>
+
+          <article class="project-card reveal">
+            <span>🏛️</span>
+            <h3>Templo Eterno</h3>
+            <p>Experiencia inmersiva futurista inspirada en el Olimpo.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto" class="section">
+      <div class="container-page max-w-3xl">
+        <div class="section-header reveal">
+          <h2>Invoca a Zeus</h2>
+          <p>Deja tu mensaje y permite que los dioses respondan.</p>
+        </div>
+
+        <form id="contact-form" class="reveal rounded-[2rem] border border-gold/30 bg-white/[0.06] p-8 shadow-2xl backdrop-blur-xl">
+          <div class="grid gap-5">
+            <input class="form-field" type="text" name="name" placeholder="Tu nombre mortal" required />
+            <input class="form-field" type="email" name="email" placeholder="Tu correo celestial" required />
+            <textarea class="form-field min-h-40 resize-none" name="message" placeholder="Tu mensaje a los dioses..." required></textarea>
+            <button type="submit" class="btn-primary w-full">Enviar Ofrenda ⚡</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="relative z-10 border-t border-gold/20 px-6 py-8 text-center text-sm text-cyan-100/70">
+    <p>&copy; 3000 <strong class="text-gold">Flexora</strong> · Hecho con ❤️ y poder divino-temporal</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

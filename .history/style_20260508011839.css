@@ -1,0 +1,177 @@
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --gold: #ffd700;
+    --electric: #00f5ff;
+    --neon-purple: #c026d3;
+    --deep: #0a1428;
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: linear-gradient(180deg, #0a1428 0%, #1a2a5e 100%);
+    color: #e8f4ff;
+    overflow-x: hidden;
+}
+
+/* ====================== NAVEGACIÓN A LA DERECHA - EFECTO DIOS ====================== */
+.header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.4rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-right {
+    display: flex;
+    gap: 3rem;
+}
+
+.nav-link {
+    color: #e8f4ff;
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    padding: 8px 0;
+    transition: all 0.4s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 1.05rem;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -8px;
+    width: 3px;
+    height: 0;
+    background: linear-gradient(var(--gold), var(--electric));
+    transition: height 0.4s;
+}
+
+.nav-link:hover::before {
+    height: 100%;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--gold), var(--electric), var(--neon-purple));
+    box-shadow: 0 0 20px var(--electric);
+    transition: width 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.nav-link:hover {
+    color: var(--gold);
+    text-shadow: 0 0 25px var(--electric),
+                 0 0 40px var(--gold);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* ====================== RAYO + EFECTOS FUTURISTAS ====================== */
+.logo-icon {
+    font-size: 3.3rem;
+    color: var(--gold);
+    animation: realLightning 3.5s infinite;
+    text-shadow: 0 0 30px var(--gold), 0 0 70px var(--electric);
+}
+
+@keyframes realLightning {
+    0%, 12%, 20%, 100% { opacity: 1; transform: scale(1); }
+    8%, 16% { opacity: 0.15; transform: scale(1.4) rotate(18deg); }
+}
+
+/* Partículas + Efectos de Guerra del Futuro */
+.particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    background: linear-gradient(#ffd700, #00f5ff);
+    border-radius: 50%;
+    box-shadow: 0 0 15px #ffd700;
+    animation: floatParticle linear infinite;
+}
+
+/* Resto de estilos (mantengo lo mejor de lo anterior) */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    padding-top: 80px;
+}
+
+.hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(4rem, 10vw, 7.8rem);
+    background: linear-gradient(90deg, #ffd700, #fff, #00f5ff, #c026d3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.btn-primary {
+    padding: 18px 42px;
+    background: linear-gradient(45deg, var(--gold), #fff);
+    color: #0a1428;
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    transition: all 0.4s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.9);
+}
+
+/* Mantengo cards, proyectos, contacto y footer igual que antes */
+.section { padding: 140px 2rem; scroll-margin-top: 90px; }
+
+.cards-grid, .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 2.8rem;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.card, .project-card {
+    background: rgba(15, 30, 70, 0.9);
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    border-radius: 28px;
+    padding: 3rem 2.5rem;
+    transition: all 0.8s;
+}
+
+.card:hover, .project-card:hover {
+    transform: translateY(-30px) scale(1.06);
+    border-color: var(--gold);
+    box-shadow: 0 50px 100px -20px rgba(255, 215, 0, 0.6);
+}
