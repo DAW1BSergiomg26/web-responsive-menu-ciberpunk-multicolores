@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+  --font-inter: "Inter", "sans-serif";
+  --font-space: "Space Grotesk", "sans-serif";
+  --color-gold: #ffd700;
+  --color-electric: #00f5ff;
+  --color-neon: #c026d3;
+  --color-deep: #050816;
+}
