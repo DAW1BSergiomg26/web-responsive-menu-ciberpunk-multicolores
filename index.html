@@ -171,10 +171,19 @@
         </div>
 
         <form id="contact-form" class="reveal rounded-[2rem] border border-gold/30 bg-white/[0.06] p-8 shadow-2xl backdrop-blur-xl">
-          <div class="grid gap-5">
-            <input class="form-field" type="text" name="name" placeholder="Tu nombre mortal" required />
-            <input class="form-field" type="email" name="email" placeholder="Tu correo celestial" required />
-            <textarea class="form-field min-h-40 resize-none" name="message" placeholder="Tu mensaje a los dioses..." required></textarea>
+          <div class="grid gap-6">
+            <div class="form-group">
+              <label for="name" class="form-label">Tu nombre</label>
+              <input id="name" class="form-field" type="text" name="name" placeholder="Tu nombre mortal" required autocomplete="name" />
+            </div>
+            <div class="form-group">
+              <label for="email" class="form-label">Tu correo</label>
+              <input id="email" class="form-field" type="email" name="email" placeholder="Tu correo celestial" required autocomplete="email" />
+            </div>
+            <div class="form-group">
+              <label for="message" class="form-label">Tu mensaje</label>
+              <textarea id="message" class="form-field min-h-40 resize-none" name="message" placeholder="Tu mensaje a los dioses..." required autocomplete="off"></textarea>
+            </div>
             <button type="submit" class="btn-primary w-full">Enviar Ofrenda ⚡</button>
           </div>
         </form>
