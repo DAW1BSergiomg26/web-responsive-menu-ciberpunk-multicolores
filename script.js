@@ -123,8 +123,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1800);
   });
 
-  console.log(
-    '%c⚡ Flexora Olimpo 3000 activado con cenizas cyberpunk',
-    'color:#ffd700; font-size:18px; font-weight:bold;'
-  );
 });
