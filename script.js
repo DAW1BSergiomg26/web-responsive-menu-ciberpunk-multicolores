@@ -65,15 +65,20 @@ document.addEventListener('DOMContentLoaded', () => {
     hamburger.classList.toggle('active', isOpen);
     hamburger.setAttribute('aria-expanded', String(isOpen));
     document.body.classList.toggle('menu-open', isOpen);
+    if (!isOpen) hamburger.focus();
   });
 
   document.querySelectorAll('#nav-mobile a').forEach((link) => {
-    link.addEventListener('click', closeMobileMenu);
+    link.addEventListener('click', () => {
+      closeMobileMenu();
+      hamburger.focus();
+    });
   });
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       closeMobileMenu();
+      hamburger.focus();
     }
   });
 
@@ -129,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Clear response
   function resetOracle() {
     responseArea.innerHTML = '<p class="placeholder-text">El Oráculo aguarda tu pregunta mortal...</p>';
-    if (oracleActions) oracleActions.hidden = true;
+    if (oracleActions) oracleActions.style.display = 'none';
   }
 
   clearButton?.addEventListener('click', resetOracle);
@@ -154,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     submitButton.disabled = true;
     submitButton.innerHTML = "Consultando... 🌩️";
-    if (oracleActions) oracleActions.hidden = true;
+    if (oracleActions) oracleActions.style.display = 'none';
     responseArea.innerHTML = '<div class="oracle-loading"><span class="neon-loader"></span><span>Zeus está pensando...</span></div>';
 
     try {
@@ -184,12 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
         responseArea.scrollTop = responseArea.scrollHeight;
       }
 
-      if (oracleActions) oracleActions.hidden = false;
+      if (oracleActions) oracleActions.style.display = 'flex';
 
     } catch (error) {
       console.error('Error del Oráculo:', error);
       responseArea.innerHTML = `<p style="color: #ff4d4d">${error.message || 'El rayo ha fallado. Intenta de nuevo.'}</p>`;
-      if (oracleActions) oracleActions.hidden = false;
+      if (oracleActions) oracleActions.style.display = 'flex';
     } finally {
       submitButton.disabled = false;
       submitButton.innerHTML = "Invocar ⚡";
@@ -208,7 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let current = null;
 
     spySections.forEach((section) => {
-      if (scrollY >= section.offsetTop) {
+      const rect = section.getBoundingClientRect();
+      if (scrollY >= rect.top + window.scrollY) {
         current = section.id;
       }
     });
