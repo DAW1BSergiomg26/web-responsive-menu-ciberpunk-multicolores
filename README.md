@@ -2,61 +2,44 @@
 
 **Donde el mito y el código forjan experiencias divinas.**
 
-Flexora es una landing page cyberpunk-mitológica que fusiona la estética del Olimpo con diseño web moderno: HTML semántico, CSS con animaciones, y JavaScript ligero. Construida como templo digital para presentar proyectos, tecnologías y un formulario de contacto inspirado en ofrendas a los dioses.
+Landing page cyberpunk-mitológica con **Oráculo de Zeus potenciado por IA** (OpenRouter + Gemini 3.5 Flash). Combina HTML semántico, Tailwind CSS v4, animaciones CSS y un backend proxy seguro en Express.
 
 ---
 
-## 📜 Concepto
-
-> *"El rayo de Zeus encuentra su reflejo en el código. El diseño responsive es el nuevo Oráculo."*
-
-La web mezcla dos mundos aparentemente opuestos:
-
-- **La mitología griega** — dioses, rayos, reliquias, ofrendas, el monte Olimpo
-- **El desarrollo frontend** — HTML5, CSS3, JavaScript, Tailwind, diseño responsive, accesibilidad
-
-El resultado es una experiencia visual inmersiva con partículas divinas, gradientes celestiales y una paleta de colores que evoca el fuego, el oro y la energía del Olimpo.
-
----
-
-## 🛠️ Tecnologías
+## 🛠️ Stack
 
 | Tecnología | Uso |
 |-----------|-----|
 | **HTML5** | Estructura semántica del templo digital |
-| **CSS3** | Animaciones, gradientes, partículas, diseño responsive |
-| **JavaScript** | Menú accesible, partículas ember, scroll reveal, formulario |
-| **Tailwind CSS v4** | Utilidades de layout, colores, responsive (generado localmente) |
+| **CSS3** | Animaciones, gradientes, partículas ember, responsive design |
+| **JavaScript** | Menú accesible, scroll reveal, streaming del Oráculo, partículas |
+| **Tailwind CSS v4** | Utilidades de layout, colores, responsive (generado localmente vía CLI) |
+| **Vite** | Bundler y dev server con proxy al backend |
+| **Express** | Backend proxy seguro para OpenRouter |
+| **OpenRouter API** | Acceso a Gemini 3.5 Flash para el Oráculo de Zeus |
 | **Google Fonts** | Inter (texto) + Space Grotesk (títulos) |
-| **Intersection Observer** | Animaciones de entrada eficientes |
 
 ---
 
 ## ✨ Características
 
 - **Header fijo** con navegación responsive y menú hamburguesa animado
-- **Partículas "ember"** que ascienden como cenizas divinas
-- **Revelación por scroll** suave con IntersectionObserver
+- **Partículas "ember"** que ascienden como cenizas divinas (3 variantes: gold, magenta, ash)
+- **Revelación por scroll** con IntersectionObserver
 - **Gradientes animados** en títulos con efecto neón
-- **Fondo estelar** con grid sutil y viñeta
-- **Formulario de contacto** accesible con label, autocomplete y teclado
+- **Fondo estelar** con grid sutil, viñeta y radios divinos
+- **Oráculo de Zeus** con IA (Gemini 3.5 Flash):
+  - Streaming en tiempo real con efecto typing
+  - Spinner neón durante la carga
+  - Contador de caracteres (límite 2000)
+  - Botón de limpiar respuesta
+  - Validación de campo vacío con shake
+- **Arquitectura segura**: API key oculta en backend proxy (`server/.env`)
 - **Modo de movimiento reducido** respetado (`prefers-reduced-motion`)
 - **Favicon inline** con rayo ⚡
 - **Open Graph + Twitter Cards** para compartir en redes
 - **100% responsive**: móvil, tablet, escritorio
-
----
-
-## 🔧 Optimización aplicada
-
-| Aspecto | Mejora |
-|---------|--------|
-| **Rendimiento** | Tailwind CDN (~400 KB) reemplazado por CSS local (14 KB minificado) |
-| **Accesibilidad** | Formulario con `<label>`, `autocomplete`, `aria-expanded`, soporte teclado |
-| **SEO** | Meta description, Open Graph, Twitter Cards, HTML semántico |
-| **CSS** | Eliminadas reglas duplicadas con Tailwind Preflight y scroll-smooth |
-| **Limpieza** | Console.log eliminado, `.history/` ignorado por git |
-| **Responsive** | Menú hamburguesa en móvil, grid adaptable, media queries |
+- **Accesibilidad**: `aria-expanded`, menú por teclado, `aria-live` en el Oráculo
 
 ---
 
@@ -64,15 +47,18 @@ El resultado es una experiencia visual inmersiva con partículas divinas, gradie
 
 ```
 FLEXORA/
-├── index.html           # Página principal
-├── style.css            # Estilos personalizados (tema, animaciones, layout)
-├── script.js            # Interactividad (menú, partículas, scroll reveal)
-├── tailwind.css         # Tailwind generado y minificado (14 KB)
-├── tailwind.config.js   # Configuración de Tailwind
-├── src/
-│   └── tailwind.css     # Punto de entrada CSS con @theme
-├── package.json         # Dependencias y script build:css
-└── README.md            # Este archivo
+├── index.html             # Página principal
+├── style.css              # Estilos personalizados (tema, animaciones, layout)
+├── script.js              # Interactividad (menú, partículas, scroll reveal, Oráculo)
+├── tailwind.css           # Tailwind v4 generado y minificado
+├── vite.config.js         # Configuración de Vite + proxy al backend
+├── package.json           # Dependencias y scripts
+├── .gitignore
+├── server/
+│   ├── server.js          # Backend Express (proxy a OpenRouter)
+│   └── .env.example       # Plantilla para la API key
+└── src/
+    └── tailwind.css       # Punto de entrada CSS con @theme
 ```
 
 ---
@@ -80,54 +66,69 @@ FLEXORA/
 ## 🚀 Instalación y uso
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/DAW1BSergiomg26/web-responsive-menu-ciberpunk-multicolores.git
+# 1. Clonar e instalar dependencias
+git clone <repo-url>
 cd web-responsive-menu-ciberpunk-multicolores
-
-# 2. Abrir index.html directamente en el navegador
-#    (No necesita servidor — es estático puro)
-```
-
-### Si quieres regenerar Tailwind localmente:
-
-```bash
 npm install
-npm run build:css
+
+# 2. Configurar API key del Oráculo
+cp server/.env.example server/.env
+# Editar server/.env y pegar: OPENROUTER_API_KEY=sk-or-v1-tu_clave_real
+
+# 3. Arrancar backend + frontend a la vez
+npm run dev:full
+
+# O por separado (dos terminales):
+npm run server   # Backend → http://localhost:3001
+npm run dev      # Frontend → http://localhost:3000
 ```
 
-Esto escanea `index.html`, genera solo las clases usadas y produce `tailwind.css` minificado.
+Abrir `http://localhost:3000` y navegar a **El Oráculo de Zeus**.
 
 ---
 
-## 📦 Comandos útiles
+## 📦 Comandos
 
 | Comando | Qué hace |
 |---------|----------|
+| `npm run dev` | Arranca Vite (frontend) en `http://localhost:3000` |
+| `npm run server` | Arranca el backend proxy en `http://localhost:3001` |
+| `npm run dev:full` | Arranca ambos simultáneamente (usa concurrently) |
 | `npm run build:css` | Regenera `tailwind.css` minificado desde `src/tailwind.css` |
-| `npm install` | Instala Tailwind CLI (solo para desarrollo) |
 
 ---
 
-## 🔮 Futuras mejoras
+## 🔒 Arquitectura de seguridad
 
-- [ ] Navegación con scroll spy (resaltar sección activa)
-- [ ] Formulario con envío real (servicio de correo o backend ligero)
-- [ ] Lightbox / galería de proyectos
-- [ ] Modo oscuro / claro toggle
-- [ ] Efecto parallax en secciones principales
+```
+Navegador → fetch('/api/oracle') → Vite proxy → Express (3001) → OpenRouter API
+                                                                         ↓
+Navegador ← streaming visual ← Vite proxy ←  Express (3001) ←  SSE chunks
+```
+
+- La **API key** vive solo en `server/.env` — nunca llega al navegador
+- El frontend llama a `/api/oracle`, Vite lo proxy al backend
+- El backend valida, limita longitud (2000 chars), y aplica timeout (30s)
+- Los errores se devuelven sin detalles técnicos
+
+---
+
+## 🔮 Próximas mejoras
+
+- [ ] Scroll spy (resaltar sección activa en navbar)
+- [ ] Iconos SVG personalizados (reemplazar emojis)
+- [ ] Cargar Google Fonts localmente (sin CDN)
 - [ ] Despliegue automático con GitHub Actions
 
 ---
 
 ## 👤 Autor
 
-**Sergio Daniel Martínez Gómez**  
+**Sergio Daniel Martínez Gómez**
 1º DAW — Desarrollo de Aplicaciones Web
 
-> *Proyecto realizado como práctica de diseño responsive, maquetación frontend y despliegue. Inspirado en el mito, el código y la estética cyberpunk.*
+> *Proyecto realizado como práctica de diseño responsive, maquetación frontend, backend proxy y despliegue. Inspirado en el mito, el código y la estética cyberpunk.*
 
 ---
 
-## 🏛️ Frase final
-
-> *"Zeus lanzó su rayo, nosotros lo escribimos en CSS."*
+> *"Zeus lanzó su rayo, nosotros lo escribimos en código."*
