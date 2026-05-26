@@ -104,66 +104,52 @@ document.addEventListener('DOMContentLoaded', () => {
     lightning.style.animationDuration = '3.5s';
   });
 
-  // --- LÓGICA DEL ORÁCULO DE ZEUS (OPENROUTER) ---
-  import { OpenRouter } from "@openrouter/sdk";
-
+  // --- ORÁCULO DE ZEUS (proxy seguro vía backend) ---
   const responseArea = document.getElementById('oracle-response');
   const questionInput = document.getElementById('user-question');
-  
-  // NOTA: En un entorno real, la API Key vendría de un proxy o .env seguro.
-  // Para este prototipo, se debe configurar aquí o vía variable de entorno.
-  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || "TU_API_KEY_AQUÍ";
-
-  const openrouter = new OpenRouter({
-    apiKey: apiKey
-  });
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    
-    const question = questionInput.question || questionInput.value;
+
+    const question = questionInput.value.trim();
     if (!question) return;
 
     const submitButton = document.getElementById('oracle-submit');
-    
-    // UI Loading state
+
     submitButton.disabled = true;
     submitButton.innerHTML = "Consultando... 🌩️";
     responseArea.innerHTML = '<p class="streaming-text">Conectando con el Olimpo...</p>';
 
     try {
-      const stream = await openrouter.chat.send({
-        model: "google/gemini-3.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: "Eres Zeus en el año 3000. Respondes de forma épica, cyberpunk, mitológica y breve. Mezclas sabiduría divina con términos tecnológicos. Hablas como un Dios digital."
-          },
-          {
-            role: "user",
-            content: question
-          }
-        ],
-        stream: true
+      const res = await fetch('/api/oracle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: question }),
       });
 
-      responseArea.innerHTML = ""; // Limpiar loading
-      let fullResponse = "";
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Error desconocido' }));
+        throw new Error(err.error || `Error ${res.status}`);
+      }
 
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          fullResponse += content;
-          // Actualizar el DOM palabra a palabra (Efecto divino)
-          responseArea.innerText = fullResponse;
-          // Auto-scroll al final
-          responseArea.scrollTop = responseArea.scrollHeight;
-        }
+      responseArea.innerHTML = '';
+      let fullResponse = '';
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value, { stream: true });
+        fullResponse += text;
+        responseArea.innerText = fullResponse;
+        responseArea.scrollTop = responseArea.scrollHeight;
       }
 
     } catch (error) {
-      console.error("Error del Oráculo:", error);
-      responseArea.innerHTML = '<p style="color: #ff4d4d">El rayo ha fallado. Revisa tu conexión (o tu API Key).</p>';
+      console.error('Error del Oráculo:', error);
+      responseArea.innerHTML = `<p style="color: #ff4d4d">${error.message || 'El rayo ha fallado. Intenta de nuevo.'}</p>`;
     } finally {
       submitButton.disabled = false;
       submitButton.innerHTML = "Invocar ⚡";
