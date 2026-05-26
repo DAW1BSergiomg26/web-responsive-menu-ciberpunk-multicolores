@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hamburger.classList.remove('active');
     navMobile.classList.remove('active');
     hamburger.setAttribute('aria-expanded', 'false');
-    document.body.style.overflow = '';
+    document.body.classList.remove('menu-open');
   }
 
   hamburger?.addEventListener('click', () => {
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     hamburger.classList.toggle('active', isOpen);
     hamburger.setAttribute('aria-expanded', String(isOpen));
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    document.body.classList.toggle('menu-open', isOpen);
   });
 
   document.querySelectorAll('#nav-mobile a').forEach((link) => {
@@ -104,23 +104,71 @@ document.addEventListener('DOMContentLoaded', () => {
     lightning.style.animationDuration = '3.5s';
   });
 
-  form?.addEventListener('submit', (event) => {
+  // --- LÓGICA DEL ORÁCULO DE ZEUS (OPENROUTER) ---
+  import { OpenRouter } from "@openrouter/sdk";
+
+  const responseArea = document.getElementById('oracle-response');
+  const questionInput = document.getElementById('user-question');
+  
+  // NOTA: En un entorno real, la API Key vendría de un proxy o .env seguro.
+  // Para este prototipo, se debe configurar aquí o vía variable de entorno.
+  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || "TU_API_KEY_AQUÍ";
+
+  const openrouter = new OpenRouter({
+    apiKey: apiKey
+  });
+
+  form?.addEventListener('submit', async (event) => {
     event.preventDefault();
+    
+    const question = questionInput.question || questionInput.value;
+    if (!question) return;
 
-    const submitButton = form.querySelector('button[type="submit"]');
-
-    if (!submitButton) return;
-
-    const originalText = submitButton.textContent;
-
-    submitButton.textContent = 'Ofrenda enviada ⚡';
+    const submitButton = document.getElementById('oracle-submit');
+    
+    // UI Loading state
     submitButton.disabled = true;
+    submitButton.innerHTML = "Consultando... 🌩️";
+    responseArea.innerHTML = '<p class="streaming-text">Conectando con el Olimpo...</p>';
 
-    setTimeout(() => {
-      form.reset();
-      submitButton.textContent = originalText;
+    try {
+      const stream = await openrouter.chat.send({
+        model: "google/gemini-3.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: "Eres Zeus en el año 3000. Respondes de forma épica, cyberpunk, mitológica y breve. Mezclas sabiduría divina con términos tecnológicos. Hablas como un Dios digital."
+          },
+          {
+            role: "user",
+            content: question
+          }
+        ],
+        stream: true
+      });
+
+      responseArea.innerHTML = ""; // Limpiar loading
+      let fullResponse = "";
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          fullResponse += content;
+          // Actualizar el DOM palabra a palabra (Efecto divino)
+          responseArea.innerText = fullResponse;
+          // Auto-scroll al final
+          responseArea.scrollTop = responseArea.scrollHeight;
+        }
+      }
+
+    } catch (error) {
+      console.error("Error del Oráculo:", error);
+      responseArea.innerHTML = '<p style="color: #ff4d4d">El rayo ha fallado. Revisa tu conexión (o tu API Key).</p>';
+    } finally {
       submitButton.disabled = false;
-    }, 1800);
+      submitButton.innerHTML = "Invocar ⚡";
+      questionInput.value = "";
+    }
   });
 
 });

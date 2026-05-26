@@ -21,5 +21,9 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.0",
     "tailwindcss": "^4.3.0"
+  },
+  "dependencies": {
+    "@openrouter/sdk": "^0.12.35",
+    "vite": "^8.0.14"
   }
 }

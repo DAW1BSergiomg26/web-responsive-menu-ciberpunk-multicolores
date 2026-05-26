@@ -48,11 +48,27 @@
       </button>
     </div>
 
-    <nav id="nav-mobile" class="mobile-menu md:hidden">
-      <a href="#inicio" class="mobile-link">Inicio</a>
-      <a href="#tecnologias" class="mobile-link">Tecnologías</a>
-      <a href="#proyectos" class="mobile-link">Proyectos</a>
-      <a href="#contacto" class="mobile-link">Contacto</a>
+    <nav id="nav-mobile" class="mobile-menu md:hidden" aria-label="Menú de navegación móvil">
+      <div class="mobile-menu-inner">
+        <div class="mobile-hero">
+          <span class="mobile-hero-icon" aria-hidden="true">⚡</span>
+          <span class="mobile-hero-title">Flexora</span>
+          <span class="mobile-hero-sub">Templo Digital del Olimpo 3000</span>
+        </div>
+
+        <div class="mobile-divider"></div>
+
+        <div class="mobile-links">
+          <a href="#inicio" class="mobile-link">Inicio</a>
+          <a href="#tecnologias" class="mobile-link">Tecnologías</a>
+          <a href="#proyectos" class="mobile-link">Proyectos</a>
+          <a href="#contacto" class="mobile-link">Contacto</a>
+        </div>
+
+        <div class="mobile-divider"></div>
+
+        <p class="mobile-tagline">"Zeus de los Códigos y del Desarrollo Web"</p>
+      </div>
     </nav>
   </header>
 
@@ -151,30 +167,34 @@
       </div>
     </section>
 
-    <section id="contacto" class="section">
-      <div class="container-page max-w-3xl">
+    <section id="contacto" class="section section-soft">
+      <div class="container-page max-w-4xl">
         <div class="section-header reveal">
-          <h2>Invoca a Zeus</h2>
-          <p>Deja tu mensaje y permite que los dioses respondan.</p>
+          <h2>El Oráculo de Zeus</h2>
+          <p>Habla con el Padre de los Dioses. Su sabiduría digital no tiene límites.</p>
         </div>
 
-        <form id="contact-form" class="reveal rounded-[2rem] border border-gold/30 bg-white/[0.06] p-8 shadow-2xl backdrop-blur-xl">
-          <div class="grid gap-6">
-            <div class="form-group">
-              <label for="name" class="form-label">Tu nombre</label>
-              <input id="name" class="form-field" type="text" name="name" placeholder="Tu nombre mortal" required autocomplete="name" />
-            </div>
-            <div class="form-group">
-              <label for="email" class="form-label">Tu correo</label>
-              <input id="email" class="form-field" type="email" name="email" placeholder="Tu correo celestial" required autocomplete="email" />
-            </div>
-            <div class="form-group">
-              <label for="message" class="form-label">Tu mensaje</label>
-              <textarea id="message" class="form-field min-h-40 resize-none" name="message" placeholder="Tu mensaje a los dioses..." required autocomplete="off"></textarea>
-            </div>
-            <button type="submit" class="btn-primary w-full">Enviar Ofrenda ⚡</button>
+        <div class="oracle-container reveal">
+          <div id="oracle-response" class="oracle-response-area" aria-live="polite">
+            <p class="placeholder-text">El Oráculo aguarda tu pregunta mortal...</p>
           </div>
-        </form>
+
+          <form id="contact-form" class="oracle-form">
+            <div class="oracle-input-group">
+              <input 
+                id="user-question" 
+                class="form-field" 
+                type="text" 
+                placeholder="Escribe tu pregunta al Olimpo..." 
+                required 
+                autocomplete="off"
+              />
+              <button type="submit" id="oracle-submit" class="btn-primary">
+                Invocar ⚡
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </section>
 
@@ -184,6 +204,6 @@
     <p>&copy; 3000 <strong class="text-gold">Flexora</strong> · Hecho con ❤️ y poder divino-temporal</p>
   </footer>
 
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
