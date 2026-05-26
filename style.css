@@ -124,12 +124,14 @@ body::after {
   transition: width 0.35s ease;
 }
 
-.nav-link:hover {
+.nav-link:hover,
+.nav-link.active {
   color: var(--gold);
   text-shadow: 0 0 24px rgba(0, 245, 255, 0.7);
 }
 
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link.active::after {
   width: 100%;
 }
 
@@ -265,13 +267,21 @@ body::after {
 }
 
 .mobile-hero-icon {
-  font-size: 3.5rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
   color: var(--gold);
   text-shadow:
     0 0 30px rgba(255, 215, 0, 0.8),
     0 0 60px rgba(0, 245, 255, 0.4);
   animation: lightningPulse 3.5s infinite;
+}
+
+.mobile-hero-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .mobile-hero-title {
@@ -338,7 +348,8 @@ body::after {
 }
 
 .mobile-link:hover,
-.mobile-link:focus-visible {
+.mobile-link:focus-visible,
+.mobile-link.active {
   color: var(--gold);
   text-shadow:
     0 0 30px rgba(255, 215, 0, 0.45),
@@ -347,7 +358,8 @@ body::after {
 }
 
 .mobile-link:hover::after,
-.mobile-link:focus-visible::after {
+.mobile-link:focus-visible::after,
+.mobile-link.active::after {
   width: 80%;
 }
 
@@ -520,12 +532,19 @@ body::after {
   opacity: 1;
 }
 
-.card-icon,
-.project-card span {
-  display: inline-block;
+.card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 1.4rem;
-  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
   filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.7));
+}
+
+.card-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .divine-card h3,
@@ -589,6 +608,27 @@ body::after {
 
 .btn-primary:hover {
   box-shadow: 0 0 70px rgba(255, 215, 0, 0.75);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.55), 0 0 20px rgba(255, 215, 0, 0.25);
+  border-radius: 4px;
+}
+
+.hamburger:focus-visible {
+  border-radius: 6px;
+}
+
+.nav-link:focus-visible {
+  border-radius: 2px;
+}
+
+.oracle-input-wrap:focus-within .form-field {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2), 0 0 25px rgba(255, 215, 0, 0.1);
 }
 
 .form-group {
@@ -721,10 +761,25 @@ body::after {
   transition: all 0.3s ease;
 }
 
-.btn-clear:hover {
+.btn-clear:hover,
+.btn-clear:focus-visible {
   border-color: var(--gold);
   color: var(--gold);
   box-shadow: 0 0 18px rgba(255, 215, 0, 0.2);
+}
+
+.footer-link {
+  color: rgba(223, 250, 255, 0.45);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--gold);
 }
 
 .oracle-loading {
@@ -818,8 +873,9 @@ body::after {
     font-size: 2.2rem;
   }
 
-  .mobile-hero-icon {
-    font-size: 2.8rem;
+  .mobile-hero-icon svg {
+    width: 2.8rem;
+    height: 2.8rem;
   }
 
   .divine-card,

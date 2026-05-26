@@ -199,4 +199,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // --- SCROLL SPY ---
+  const spySections = document.querySelectorAll('section[id]');
+  const spyLinks = document.querySelectorAll('.nav-link, .mobile-link');
+
+  function updateActiveNav() {
+    const scrollY = window.scrollY + 100;
+    let current = null;
+
+    spySections.forEach((section) => {
+      if (scrollY >= section.offsetTop) {
+        current = section.id;
+      }
+    });
+
+    spyLinks.forEach((link) => {
+      link.classList.remove('active');
+      link.removeAttribute('aria-current');
+    });
+
+    if (current) {
+      document.querySelectorAll(`[href="#${current}"]`).forEach((link) => {
+        link.classList.add('active');
+        link.setAttribute('aria-current', 'page');
+      });
+    }
+  }
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav();
+
+  // --- AÑO DINÁMICO ---
+  const yearSpan = document.getElementById('year');
+  if (yearSpan) yearSpan.textContent = new Date().getFullYear();
 });
