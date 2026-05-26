@@ -7,7 +7,7 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-dotenv.config({ path: join(__dirname, '.env') });
+dotenv.config({ path: join(__dirname, '.env') }); // Ignorado si .env no existe (producción)
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,7 +41,7 @@ app.post('/api/oracle', async (req, res) => {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
-        'HTTP-Referer': 'http://localhost:3000',
+        'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
         'X-Title': 'Flexora - Oracle de Zeus',
       },
       body: JSON.stringify({

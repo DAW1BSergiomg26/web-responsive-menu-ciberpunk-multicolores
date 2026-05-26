@@ -8,7 +8,8 @@
     "dev": "vite --host 127.0.0.1 --port 3000 --open",
     "server": "node server/server.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
-    "build:css": "tailwindcss -i src/tailwind.css -o tailwind.css --minify"
+    "build:css": "tailwindcss -i src/tailwind.css -o tailwind.css --minify",
+    "build": "npm run build:css"
   },
   "repository": {
     "type": "git",

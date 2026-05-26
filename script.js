@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightning = document.getElementById('lightning');
   const form = document.getElementById('contact-form');
 
+  const API_BASE = import.meta.env.VITE_API_URL || '';
+
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function createEmber() {
@@ -163,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     responseArea.innerHTML = '<div class="oracle-loading"><span class="neon-loader"></span><span>Zeus está pensando...</span></div>';
 
     try {
-      const res = await fetch('/api/oracle', {
+      const res = await fetch(`${API_BASE}/api/oracle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: question }),
