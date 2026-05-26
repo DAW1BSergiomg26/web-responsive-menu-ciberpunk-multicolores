@@ -107,18 +107,55 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- ORÁCULO DE ZEUS (proxy seguro vía backend) ---
   const responseArea = document.getElementById('oracle-response');
   const questionInput = document.getElementById('user-question');
+  const charCount = document.getElementById('char-count');
+  const oracleActions = document.getElementById('oracle-actions');
+  const clearButton = document.getElementById('clear-oracle');
+
+  // Character counter
+  function updateCharCount() {
+    const len = questionInput.value.length;
+    charCount.textContent = `${len}/2000`;
+    if (len > 1900) {
+      charCount.style.color = '#ff6b6b';
+    } else if (len > 1500) {
+      charCount.style.color = '#ffd700';
+    } else {
+      charCount.style.color = 'rgba(223, 250, 255, 0.35)';
+    }
+  }
+
+  questionInput?.addEventListener('input', updateCharCount);
+
+  // Clear response
+  function resetOracle() {
+    responseArea.innerHTML = '<p class="placeholder-text">El Oráculo aguarda tu pregunta mortal...</p>';
+    if (oracleActions) oracleActions.hidden = true;
+  }
+
+  clearButton?.addEventListener('click', resetOracle);
+
+  // Empty-field feedback
+  function shakeField() {
+    questionInput.classList.add('oracle-field-error');
+    setTimeout(() => questionInput.classList.remove('oracle-field-error'), 800);
+  }
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const question = questionInput.value.trim();
-    if (!question) return;
+
+    if (!question) {
+      shakeField();
+      return;
+    }
 
     const submitButton = document.getElementById('oracle-submit');
 
     submitButton.disabled = true;
     submitButton.innerHTML = "Consultando... 🌩️";
-    responseArea.innerHTML = '<p class="streaming-text">Conectando con el Olimpo...</p>';
+    if (oracleActions) oracleActions.hidden = true;
+    responseArea.innerHTML = '<div class="oracle-loading"><span class="neon-loader"></span><span>Zeus está pensando...</span></div>';
 
     try {
       const res = await fetch('/api/oracle', {
@@ -147,13 +184,18 @@ document.addEventListener('DOMContentLoaded', () => {
         responseArea.scrollTop = responseArea.scrollHeight;
       }
 
+      if (oracleActions) oracleActions.hidden = false;
+
     } catch (error) {
       console.error('Error del Oráculo:', error);
       responseArea.innerHTML = `<p style="color: #ff4d4d">${error.message || 'El rayo ha fallado. Intenta de nuevo.'}</p>`;
+      if (oracleActions) oracleActions.hidden = false;
     } finally {
       submitButton.disabled = false;
       submitButton.innerHTML = "Invocar ⚡";
       questionInput.value = "";
+      if (charCount) charCount.textContent = '0/2000';
+      if (charCount) charCount.style.color = 'rgba(223, 250, 255, 0.35)';
     }
   });
 

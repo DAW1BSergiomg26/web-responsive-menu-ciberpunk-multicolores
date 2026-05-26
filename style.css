@@ -677,6 +677,97 @@ body::after {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.oracle-input-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.oracle-input-wrap .form-field {
+  width: 100%;
+  padding-right: 4.5rem;
+}
+
+.char-count {
+  position: absolute;
+  right: 1rem;
+  font-size: 0.7rem;
+  font-family: 'Space Grotesk', sans-serif;
+  color: rgba(223, 250, 255, 0.35);
+  pointer-events: none;
+  transition: color 0.3s ease;
+  user-select: none;
+}
+
+.oracle-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.5rem;
+  min-height: 2rem;
+}
+
+.btn-clear {
+  background: none;
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  color: rgba(223, 250, 255, 0.4);
+  border-radius: 999px;
+  padding: 0.3rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+
+.btn-clear:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.2);
+}
+
+.oracle-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 215, 0, 0.8);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}
+
+.neon-loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 215, 0, 0.15);
+  border-top-color: var(--gold);
+  border-right-color: var(--electric);
+  border-radius: 50%;
+  animation: oracle-spin 0.7s linear infinite;
+  box-shadow:
+    0 0 10px rgba(255, 215, 0, 0.3),
+    0 0 20px rgba(0, 245, 255, 0.12);
+  flex-shrink: 0;
+}
+
+@keyframes oracle-spin {
+  to { transform: rotate(360deg); }
+}
+
+.oracle-field-error {
+  border-color: #ff4d4d !important;
+  box-shadow: 0 0 18px rgba(255, 77, 77, 0.3) !important;
+  animation: oracle-shake 0.4s ease;
+}
+
+@keyframes oracle-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
+}
+
 .streaming-text {
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
   border-right: 2px solid var(--gold);
@@ -690,6 +781,14 @@ body::after {
 @media (max-width: 640px) {
   .oracle-input-group {
     flex-direction: column;
+  }
+
+  .oracle-input-wrap .form-field {
+    padding-right: 4.5rem;
+  }
+
+  .oracle-actions {
+    justify-content: center;
   }
 }
 

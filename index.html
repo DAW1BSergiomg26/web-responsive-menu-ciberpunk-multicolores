@@ -179,16 +179,24 @@
             <p class="placeholder-text">El Oráculo aguarda tu pregunta mortal...</p>
           </div>
 
+          <div id="oracle-actions" class="oracle-actions" hidden>
+            <button id="clear-oracle" class="btn-clear" type="button">✦ Limpiar respuesta</button>
+          </div>
+
           <form id="contact-form" class="oracle-form">
             <div class="oracle-input-group">
-              <input 
-                id="user-question" 
-                class="form-field" 
-                type="text" 
-                placeholder="Escribe tu pregunta al Olimpo..." 
-                required 
-                autocomplete="off"
-              />
+              <div class="oracle-input-wrap">
+                <input
+                  id="user-question"
+                  class="form-field"
+                  type="text"
+                  placeholder="Escribe tu pregunta al Olimpo..."
+                  required
+                  autocomplete="off"
+                  maxlength="2000"
+                />
+                <span id="char-count" class="char-count">0/2000</span>
+              </div>
               <button type="submit" id="oracle-submit" class="btn-primary">
                 Invocar ⚡
               </button>
