@@ -589,4 +589,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- AÑO DINÁMICO ---
   const yearSpan = document.getElementById('year');
   if (yearSpan) yearSpan.textContent = new Date().getFullYear();
+
+  // --- SERVICE WORKER (PWA) ---
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
 });
