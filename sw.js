@@ -1,5 +1,5 @@
 // Cache version — increment for new deployments
-const CACHE = 'flexora-v3';
+const CACHE = 'flexora-v5';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -39,7 +39,22 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // Never cache API calls
   if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  // Network-first for script.js to always get latest
+  if (url.pathname === '/script.js') {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
     return;
   }
 

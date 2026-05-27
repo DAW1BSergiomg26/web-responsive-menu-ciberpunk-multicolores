@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // --- ORÁCULO DE ZEUS (Chat IA Cinematográfico) ---
+  console.log('[Oracle] script loaded');
   const chatMessages = document.getElementById('chat-messages');
   const chatPlaceholder = document.getElementById('chat-placeholder');
   const questionInput = document.getElementById('user-question');
@@ -139,12 +140,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const oracleActions = document.getElementById('oracle-actions');
   const clearButton = document.getElementById('clear-oracle');
   const modeBtns = document.querySelectorAll('.mode-btn');
+  const oracleSubmit = document.getElementById('oracle-submit');
+  console.log('[Oracle] buttons found:', modeBtns.length);
+  console.log('[Oracle] submit button:', oracleSubmit);
 
   const STORAGE_KEY = 'flexora_oracle_messages';
   const MAX_MEMORY = 20;
   let currentModel = 'sabio';
   let isStreaming = false;
   let lastPrompt = '';
+
+  // --- Guard: abort if required elements are missing ---
+  if (!chatMessages || !questionInput || !oracleSubmit) {
+    console.warn('[Oracle] Elementos críticos faltan — Oráculo desactivado');
+  } else {
 
   // --- Helper functions ---
   function escapeHtml(text) {
@@ -368,7 +377,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Mode selector ---
   modeBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (isStreaming) return;
       modeBtns.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
@@ -391,11 +402,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => questionInput.classList.remove('oracle-field-error'), 800);
   }
 
-  // --- Form submit ---
-  form?.addEventListener('submit', async (event) => {
-    event.preventDefault();
+  // --- Oracle submit logic ---
+  async function submitOracle() {
     if (isStreaming) return;
-
     const question = questionInput.value.trim();
     if (!question) { shakeField(); return; }
     lastPrompt = question;
@@ -415,8 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const emotion = detectEmotion(question);
       console.log(`[Oracle] detected intent: ${intent}`);
       if (emotion !== 'neutral') console.log(`[Oracle] emotional tone: ${emotion}`);
-      const fxState = OracleFX.getState(emotion, intent);
-      OracleFX.apply(fxState);
+      const fxState = window.OracleFX.getState(emotion, intent);
+      window.OracleFX.apply(fxState);
 
       const allMessages = getMessages();
       const recentMessages = allMessages.slice(-4);
@@ -464,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         retryBtn.addEventListener('click', () => {
           questionInput.value = lastPrompt;
           questionInput.dispatchEvent(new Event('input', { bubbles: true }));
-          submitBtn.click();
+          submitOracle();
         });
         errEl.querySelector('.chat-content').appendChild(retryBtn);
       }
@@ -472,20 +481,28 @@ document.addEventListener('DOMContentLoaded', () => {
       scrollToBottom();
       oracleActions.classList.remove('is-hidden');
     } finally {
-      OracleFX.relax();
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = "Invocar ⚡";
+      window.OracleFX.relax();
+      const sb = document.getElementById('oracle-submit');
+      if (sb) { sb.disabled = false; sb.innerHTML = "Invocar \u26A1"; }
       questionInput.value = "";
       if (charCount) { charCount.textContent = '0/2000'; charCount.style.color = 'rgba(223, 250, 255, 0.35)'; }
       isStreaming = false;
     }
+  }
+
+  // --- Form submit ---
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    console.log('[Oracle] invoke clicked');
+    submitOracle();
   });
 
   // --- Load messages on startup ---
   loadMessages();
 
   // --- OracleFX: Visual Reactive Engine ---
-  window.OracleFX = {
+  window.OracleFX = window.OracleFX || {
     currentState: null,
     currentIntensity: 0,
     relaxTimer: null,
@@ -578,7 +595,8 @@ document.addEventListener('DOMContentLoaded', () => {
     },
   };
 
-  OracleFX.init();
+  window.OracleFX.init();
+  } // end Oracle guard
 
   // --- SCROLL SPY ---
   const spySections = document.querySelectorAll('section[id]');

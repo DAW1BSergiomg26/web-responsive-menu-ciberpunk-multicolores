@@ -1071,6 +1071,7 @@ input:focus-visible {
   font-weight: 600;
   font-family: 'Space Grotesk', sans-serif;
   cursor: pointer;
+  pointer-events: auto;
   letter-spacing: 0.03em;
   transition: all 0.3s ease;
 }
@@ -1083,12 +1084,12 @@ input:focus-visible {
 .mode-btn.active {
   border-color: var(--gold);
   color: var(--gold);
-  background: rgba(255, 215, 0, 0.06);
-  box-shadow: 0 0 14px rgba(255, 215, 0, 0.12);
+  background: rgba(255, 215, 0, 0.1);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
 }
 
 .mode-btn.active .mode-icon {
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
 }
 
 .btn-clear {
