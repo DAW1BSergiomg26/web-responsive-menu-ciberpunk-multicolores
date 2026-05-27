@@ -220,8 +220,15 @@
         </div>
 
         <div class="oracle-container reveal">
-          <div id="oracle-response" class="oracle-response-area" aria-live="polite">
-            <p class="placeholder-text">El Oráculo aguarda tu pregunta mortal...</p>
+          <div class="oracle-chat" role="log" aria-label="Conversación con el Oráculo">
+            <div id="chat-messages" class="chat-messages">
+              <div id="chat-placeholder" class="chat-placeholder">
+                <div class="chat-placeholder-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="13,2 4,13 12,13 11,22 20,11 12,11"/></svg>
+                </div>
+                <p>El Oráculo aguarda tu pregunta mortal...</p>
+              </div>
+            </div>
           </div>
 
           <div class="oracle-mode-selector">
@@ -240,7 +247,7 @@
           </div>
 
           <div id="oracle-actions" class="oracle-actions" style="display: none;">
-            <button id="clear-oracle" class="btn-clear" type="button">✦ Limpiar respuesta</button>
+            <button id="clear-oracle" class="btn-clear" type="button">✦ Nueva conversación</button>
           </div>
 
           <form id="contact-form" class="oracle-form">
