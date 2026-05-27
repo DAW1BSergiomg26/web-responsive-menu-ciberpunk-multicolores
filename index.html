@@ -19,6 +19,7 @@
 
   <link rel="preload" href="assets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <script>window.API_BASE = ''</script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E" />
 </head>
 
@@ -221,6 +222,21 @@
         <div class="oracle-container reveal">
           <div id="oracle-response" class="oracle-response-area" aria-live="polite">
             <p class="placeholder-text">El Oráculo aguarda tu pregunta mortal...</p>
+          </div>
+
+          <div class="oracle-mode-selector">
+            <button class="mode-btn active" data-mode="sabio" type="button" title="Modelo equilibrado">
+              <span class="mode-icon">📖</span>
+              <span class="mode-label">Sabio</span>
+            </button>
+            <button class="mode-btn" data-mode="rapido" type="button" title="Modelo rápido y ligero">
+              <span class="mode-icon">⚡</span>
+              <span class="mode-label">Rápido</span>
+            </button>
+            <button class="mode-btn" data-mode="zeus" type="button" title="Modelo más potente">
+              <span class="mode-icon">👑</span>
+              <span class="mode-label">Zeus</span>
+            </button>
           </div>
 
           <div id="oracle-actions" class="oracle-actions" style="display: none;">

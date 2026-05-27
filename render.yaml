@@ -20,7 +20,7 @@ services:
     buildCommand: npm run build:css
     staticPublishPath: ./
     envVars:
-      - key: VITE_API_URL
+      - key: API_BASE
         value: https://flexora-api.onrender.com
     headers:
       - path: /assets/fonts/*

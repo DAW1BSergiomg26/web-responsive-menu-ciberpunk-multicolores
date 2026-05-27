@@ -763,6 +763,47 @@ input:focus-visible {
   min-height: 2rem;
 }
 
+.oracle-mode-selector {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 215, 0, 0.12);
+  color: rgba(223, 250, 255, 0.35);
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+  border-color: rgba(255, 215, 0, 0.35);
+  color: rgba(223, 250, 255, 0.6);
+}
+
+.mode-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(255, 215, 0, 0.06);
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.12);
+}
+
+.mode-btn.active .mode-icon {
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+}
+
 .btn-clear {
   background: none;
   border: 1px solid rgba(255, 215, 0, 0.15);

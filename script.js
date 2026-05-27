@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightning = document.getElementById('lightning');
   const form = document.getElementById('contact-form');
 
-  const API_BASE = import.meta.env.VITE_API_URL || '';
+  const API_BASE = window.API_BASE || '';
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -117,6 +117,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const charCount = document.getElementById('char-count');
   const oracleActions = document.getElementById('oracle-actions');
   const clearButton = document.getElementById('clear-oracle');
+  const modeBtns = document.querySelectorAll('.mode-btn');
+
+  const STORAGE_KEY = 'flexora_oracle_history';
+  const MAX_HISTORY = 8;
+  let currentModel = 'sabio';
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+  }
+
+  function setHistory(msgs) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_HISTORY))); } catch {}
+  }
+
+  function addToHistory(role, content) {
+    const history = getHistory();
+    history.push({ role, content });
+    setHistory(history);
+  }
+
+  function clearHistory() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  }
+
+  modeBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      modeBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentModel = btn.dataset.mode;
+    });
+  });
 
   // Character counter
   function updateCharCount() {
@@ -139,7 +170,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (oracleActions) oracleActions.style.display = 'none';
   }
 
-  clearButton?.addEventListener('click', resetOracle);
+  clearButton?.addEventListener('click', () => {
+    const hasResponse = responseArea.innerText && !responseArea.querySelector('.placeholder-text');
+    if (!hasResponse) {
+      clearHistory();
+    }
+    resetOracle();
+  });
 
   // Empty-field feedback
   function shakeField() {
@@ -165,10 +202,12 @@ document.addEventListener('DOMContentLoaded', () => {
     responseArea.innerHTML = '<div class="oracle-loading"><span class="neon-loader"></span><span>Zeus está pensando...</span></div>';
 
     try {
+      const history = getHistory();
+
       const res = await fetch(`${API_BASE}/api/oracle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: question }),
+        body: JSON.stringify({ prompt: question, messages: history, model: currentModel }),
       });
 
       if (!res.ok) {
@@ -191,11 +230,22 @@ document.addEventListener('DOMContentLoaded', () => {
         responseArea.scrollTop = responseArea.scrollHeight;
       }
 
+      addToHistory('user', question);
+      addToHistory('assistant', fullResponse);
+
       if (oracleActions) oracleActions.style.display = 'flex';
 
     } catch (error) {
       console.error('Error del Oráculo:', error);
-      responseArea.innerHTML = `<p style="color: #ff4d4d">${error.message || 'El rayo ha fallado. Intenta de nuevo.'}</p>`;
+      let message;
+      if (error instanceof TypeError && (!error.message || error.message.includes('fetch'))) {
+        message = 'No se puede conectar con el backend. Asegúrate de que el servidor Express esté corriendo en otra terminal con: npm run server';
+      } else if (error.message && error.message.includes('401')) {
+        message = 'La API key de OpenRouter no es válida o no está configurada. Revisa server/.env.';
+      } else {
+        message = error.message || 'El rayo de Zeus ha fallado. Intenta de nuevo.';
+      }
+      responseArea.innerHTML = `<p style="color: #ff4d4d">${message}</p>`;
       if (oracleActions) oracleActions.style.display = 'flex';
     } finally {
       submitButton.disabled = false;

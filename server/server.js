@@ -18,8 +18,18 @@ app.use(express.json({ limit: '10kb' }));
 const SYSTEM_PROMPT = 'Eres Zeus en el año 3000. Respondes de forma épica, cyberpunk, mitológica y breve. Mezclas sabiduría divina con términos tecnológicos. Hablas como un Dios digital.';
 const MAX_PROMPT_LENGTH = 2000;
 
+const MODELS = {
+  rapido: process.env.MODEL_RAPIDO || 'mistralai/mistral-7b-instruct:free',
+  sabio: process.env.MODEL_SABIO || 'google/gemini-2.0-flash-001',
+  zeus: process.env.MODEL_ZEUS || 'openai/gpt-4o-mini',
+};
+
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', keyConfigured: !!process.env.OPENROUTER_API_KEY });
+});
+
 app.post('/api/oracle', async (req, res) => {
-  const { prompt } = req.body;
+  const { prompt, messages, model } = req.body;
 
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return res.status(400).json({ error: 'El mensaje no puede estar vacío.' });
@@ -31,9 +41,17 @@ app.post('/api/oracle', async (req, res) => {
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    console.error('OPENROUTER_API_KEY no configurada en server/.env');
+    console.error('OPENROUTER_API_KEY no configurada');
     return res.status(500).json({ error: 'El Oráculo no está configurado. Contacta al desarrollador.' });
   }
+
+  const modelId = MODELS[model] || MODELS.sabio;
+
+  const msgs = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...(Array.isArray(messages) ? messages : []),
+    { role: 'user', content: prompt.trim() },
+  ];
 
   try {
     const openrouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -45,20 +63,21 @@ app.post('/api/oracle', async (req, res) => {
         'X-Title': 'Flexora - Oracle de Zeus',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.5-flash',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: prompt.trim() },
-        ],
+        model: modelId,
+        messages: msgs,
         stream: true,
+        max_tokens: 1200,
+        temperature: 0.8,
       }),
       signal: AbortSignal.timeout(30000),
     });
 
     if (!openrouterRes.ok) {
       const errorBody = await openrouterRes.text().catch(() => '');
+      let detail = 'El Oráculo no responde. Los cielos están turbulentos.';
+      try { const parsed = JSON.parse(errorBody); if (parsed.error?.message) detail = parsed.error.message; } catch {}
       console.error('OpenRouter error:', openrouterRes.status, errorBody.slice(0, 300));
-      return res.status(502).json({ error: 'El Oráculo no responde. Los cielos están turbulentos.' });
+      return res.status(502).json({ error: `${detail} (${openrouterRes.status})` });
     }
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
