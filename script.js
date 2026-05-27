@@ -161,6 +161,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return text.replace(/[&<>"]/g, c => map[c]);
   }
 
+  function decodeHtmlEntitiesForCode(code) {
+    return code
+      .replace(/&amp;lt;/g, '<')
+      .replace(/&amp;gt;/g, '>')
+      .replace(/&amp;quot;/g, '"')
+      .replace(/&amp;amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&');
+  }
+
   function formatTime(ts) {
     return new Date(ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   }
@@ -203,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Syntax highlight ---
   function highlightCode(code, lang) {
-    let h = escapeHtml(code);
+    let h = code;
     const l = (lang || '').toLowerCase();
     h = h.replace(/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g, '<span class="hljs-comment">$&</span>');
     if (l === 'js' || l === 'javascript') {
@@ -212,9 +224,10 @@ document.addEventListener('DOMContentLoaded', () => {
         .replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|default|async|await|try|catch|throw|new|delete|typeof|instanceof|this|super|yield|in|of|from|as|true|false|null|undefined|NaN|Infinity)\b/g, '<span class="hljs-keyword">$1</span>')
         .replace(/\b(\d+\.?\d*)\b/g, '<span class="hljs-number">$1</span>');
     } else if (l === 'html') {
-      h = h
-        .replace(/(&lt;)(\/?)(\w+)/g, '$1$2<span class="hljs-tag">$3</span>')
-        .replace(/(\w+)(=)("(?:[^"]|\\")*")/g, '<span class="hljs-attr">$1</span>$2<span class="hljs-string">$3</span>');
+      h = h.replace(/(&lt;)(\/?)([\s\S]*?)(&gt;)/g, (_, lt, slash, inner, gt) => {
+        const hlInner = inner.replace(/([\w-]+)(=)("(?:[^"]|\\")*")/g, '<span class="hljs-attr">$1</span>$2<span class="hljs-string">$3</span>');
+        return lt + slash + '<span class="hljs-tag">' + hlInner + '</span>' + gt;
+      });
     } else if (l === 'css') {
       h = h
         .replace(/([\w-]+)(\s*:)/g, '<span class="hljs-property">$1</span>$2')
@@ -236,11 +249,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Markdown renderer ---
   function renderMarkdown(text) {
-    let h = escapeHtml(text);
-    h = h.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-      const langLabel = lang ? `<span class="code-lang-label">${lang}</span>` : '';
-      return `<div class="code-block-wrapper">${langLabel}<pre><code>${highlightCode(code, lang)}</code></pre></div>`;
+    const codeBlocks = [];
+    let h = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+      const idx = codeBlocks.length;
+      const decoded = decodeHtmlEntitiesForCode(code);
+      const escaped = escapeHtml(decoded);
+      const highlighted = highlightCode(escaped, lang);
+      const langLabel = lang ? `<span class="code-lang-label">${escapeHtml(lang)}</span>` : '';
+      codeBlocks.push(`<div class="code-block-wrapper">${langLabel}<pre><code>${highlighted}</code></pre></div>`);
+      return `%%CODE_${idx}%%`;
     });
+
+    h = escapeHtml(h);
+
     h = h.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
     h = h.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
     h = h.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
@@ -252,6 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
     h = h.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
     h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     h = h.replace(/^- (.+)$/gm, '<li>$1</li>');
+
+    h = h.replace(/%%CODE_(\d+)%%/g, (_, id) => codeBlocks[parseInt(id)] || '');
     h = h.replace(/\n/g, '<br>');
     return h;
   }
