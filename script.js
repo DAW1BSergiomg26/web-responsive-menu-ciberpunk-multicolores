@@ -248,6 +248,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- Message persistence ---
+  function getMessages() {
+    let msgs;
+    try { msgs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { msgs = []; }
+    return msgs;
+  }
+
+  function saveMessages(msgs) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_MEMORY))); } catch {}
+  }
+
   function loadMessages() {
     let msgs;
     try { msgs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { msgs = []; }
@@ -259,21 +269,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     scrollToBottom();
     oracleActions.classList.remove('is-hidden');
-    sendBtn.removeAttribute('disabled');
-    sendBtn.textContent = 'Invocar ⚡';
-    inputEl.removeAttribute('disabled');
-    charCountEl.classList.remove('text-red-400');
-  }
-
-  function hidePlaceholder() {
-    if (placeholder) placeholder.style.display = 'none';
+    const sb = document.getElementById('oracle-submit');
+    if (sb) { sb.removeAttribute('disabled'); sb.textContent = 'Invocar ⚡'; }
+    questionInput?.removeAttribute('disabled');
+    charCount?.classList.remove('text-red-400');
   }
 
   // --- Clear chat ---
-  clearBtn.addEventListener('click', () => {
+  clearButton?.addEventListener('click', () => {
     chatMessages.innerHTML = '';
     localStorage.removeItem('flexora_oracle_messages');
-    if (placeholder) placeholder.style.display = '';
+    if (chatPlaceholder) chatPlaceholder.style.display = '';
     oracleActions.classList.add('is-hidden');
     isStreaming = false;
   });
@@ -378,9 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
     charCount.style.color = len > 1900 ? '#ff6b6b' : len > 1500 ? '#ffd700' : 'rgba(223, 250, 255, 0.35)';
   }
   questionInput?.addEventListener('input', updateCharCount);
-
-  // --- Clear chat ---
-  clearButton?.addEventListener('click', clearChat);
 
   // --- Field shake ---
   function shakeField() {
