@@ -1,10 +1,8 @@
 // Cache version — increment for new deployments
-const CACHE = 'flexora-v5';
+const CACHE = 'flexora-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/style.css',
-  '/tailwind.css',
   '/script.js',
   '/manifest.webmanifest',
   '/assets/fonts/Inter-Variable.woff2',
@@ -51,6 +49,22 @@ self.addEventListener('fetch', (event) => {
         .then((res) => {
           const clone = res.clone();
           caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Network-first for CSS to avoid serving Vite HMR module (JS) cached as CSS
+  if (url.pathname.endsWith('.css')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          if (res.ok && res.headers.get('Content-Type')?.includes('text/css')) {
+            const clone = res.clone();
+            caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+          }
           return res;
         })
         .catch(() => caches.match(event.request))
