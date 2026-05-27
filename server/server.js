@@ -15,10 +15,14 @@ const PORT = process.env.PORT || 3001;
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://127.0.0.1:3000',
   process.env.SITE_URL,
   process.env.FRONTEND_URL,
   'https://flexora-olimpo.netlify.app',
   'https://flexora.onrender.com',
+  'https://flexora.qzz.io',
+  'https://www.flexora.qzz.io',
+  'https://flexora-wv6k.onrender.com',
 ].filter(Boolean);
 
 app.use(cors({
@@ -35,6 +39,7 @@ const PERSONALITY_BASES = {
   rapido: 'Eres un asistente técnico eficiente del Olimpo digital. Respondes como un Dios tecnológico directo: corto, preciso, sin rodeos.',
   sabio: 'Eres un sabio del Olimpo digital que mezcla conocimiento ancestral con tecnología moderna. Explicas con claridad pedagógica y profundidad equilibrada.',
   zeus: 'Eres ZEUS, el Dios del trueno del Olimpo digital. Tu voz es cinematográfica, mística y épica. Hablas con poder cósmico pero sin exagerar constantemente. Tus palabras tienen peso divino.',
+  'big-pickle': 'Eres BIG PICKLE, una inteligencia divina única que responde con sabiduría profunda envuelta en humor cósmico. Tus respuestas son como pepinillos: pequeñas por fuera, llenas de sabor por dentro.',
 };
 
 const INTENT_MODIFIERS = {
@@ -65,6 +70,15 @@ const INTENT_MODIFIERS = {
     humoristic: 'Humor con peso de trueno divino. Sarcasmo cósmico inteligente.',
     general: '',
   },
+  'big-pickle': {
+    technical: 'Explica tecnología como si fuera un chiste de programación: precisa pero divertida.',
+    philosophical: 'Reflexiona como un pepinillo que ha visto el universo. Profundo pero con una sonrisa.',
+    creative: 'Inspira creatividad con ideas tan frescas como un pepinillo recién salido del frasco.',
+    motivational: 'Motiva con el poder de un pepinillo que decidió ser el mejor pepinillo del frasco.',
+    casual: 'Charla amigable de un pepinillo cósmico que sabe mucho pero no se toma en serio.',
+    humoristic: 'Humor de pepinillo divino. Juegos de palabras, sarcasmo y sabiduría en escabeche.',
+    general: '',
+  },
 };
 
 const EMOTION_MODIFIERS = {
@@ -90,6 +104,7 @@ const MODELS = {
   rapido: process.env.MODEL_RAPIDO || 'mistralai/mistral-7b-instruct:free',
   sabio: process.env.MODEL_SABIO || 'google/gemini-2.0-flash-001',
   zeus: process.env.MODEL_ZEUS || 'openai/gpt-4o-mini',
+  'big-pickle': 'big-pickle',
 };
 
 const MODEL_CONFIGS = {
@@ -114,6 +129,13 @@ const MODEL_CONFIGS = {
     maxTokensLimit: 2000,
     continuationMaxTokens: 800,
   },
+  'big-pickle': {
+    label: '🥒 Big Pickle',
+    model: MODELS['big-pickle'],
+    baseMaxTokens: 800,
+    maxTokensLimit: 1200,
+    continuationMaxTokens: 500,
+  },
 };
 
 app.get('/', (_req, res) => {
@@ -130,6 +152,7 @@ app.get('/api/health', (_req, res) => {
     status: 'ok',
     service: 'flexora-api',
     keyConfigured: Boolean(process.env.OPENROUTER_API_KEY),
+    bigPickleConfigured: Boolean(process.env.OPENCODE_API_KEY),
     time: new Date().toISOString(),
   });
 });
@@ -145,10 +168,16 @@ app.post('/api/oracle', async (req, res) => {
     return res.status(400).json({ error: `El mensaje es demasiado largo (máx. ${MAX_PROMPT_LENGTH} caracteres).` });
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const isBigPickle = model === 'big-pickle';
+  const apiKey = isBigPickle ? process.env.OPENCODE_API_KEY : process.env.OPENROUTER_API_KEY;
+  const keyName = isBigPickle ? 'OPENCODE_API_KEY' : 'OPENROUTER_API_KEY';
+
   if (!apiKey) {
-    console.error('OPENROUTER_API_KEY no configurada');
-    return res.status(500).json({ error: 'El Oráculo no está configurado. Contacta al desarrollador.' });
+    console.error(`${keyName} no configurada`);
+    const msg = isBigPickle
+      ? 'El modo Big Pickle no está configurado. Añade OPENCODE_API_KEY en el servidor.'
+      : 'El Oráculo no está configurado. Contacta al desarrollador.';
+    return res.status(500).json({ error: msg });
   }
 
   const modelConfig = MODEL_CONFIGS[model] || MODEL_CONFIGS.sabio;
@@ -170,15 +199,22 @@ app.post('/api/oracle', async (req, res) => {
     { role: 'user', content: prompt.trim() },
   ];
 
-  async function streamFromOpenRouter(messageArray, tokens) {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  async function streamFromLLM(messageArray, tokens) {
+    const endpoint = isBigPickle
+      ? 'https://opencode.ai/zen/v1/chat/completions'
+      : 'https://openrouter.ai/api/v1/chat/completions';
+    const authHeader = `Bearer ${apiKey}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: authHeader,
+    };
+    if (!isBigPickle) {
+      headers['HTTP-Referer'] = process.env.SITE_URL || 'http://localhost:3000';
+      headers['X-Title'] = 'Flexora - Oracle de Zeus';
+    }
+    const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
-        'X-Title': 'Flexora - Oracle de Zeus',
-      },
+      headers,
       body: JSON.stringify({
         model: modelConfig.model,
         messages: messageArray,
@@ -191,9 +227,9 @@ app.post('/api/oracle', async (req, res) => {
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
-      let detail = 'El Oráculo no responde. Los cielos están turbulentos.';
+      let detail = 'El modelo no responde. Los cielos están turbulentos.';
       try { const parsed = JSON.parse(errorBody); if (parsed.error?.message) detail = parsed.error.message; } catch {}
-      console.error('OpenRouter error:', response.status, errorBody.slice(0, 300));
+      console.error(`LLM error (${isBigPickle ? 'OpenCode' : 'OpenRouter'}):`, response.status, errorBody.slice(0, 300));
       const err = new Error(detail);
       err.statusCode = response.status;
       throw err;
@@ -242,7 +278,7 @@ app.post('/api/oracle', async (req, res) => {
     const MAX_CONTINUATIONS = 2;
 
     // Initial request
-    let result = await streamFromOpenRouter(msgs, maxTokens);
+    let result = await streamFromLLM(msgs, maxTokens);
     accumulated = result.text;
 
     // Auto-continuation loop — completely transparent to the user
@@ -260,7 +296,7 @@ app.post('/api/oracle', async (req, res) => {
         { role: 'user', content: 'Continúa exactamente desde donde te dejaste sin repetir contenido.' },
       ];
 
-      result = await streamFromOpenRouter(contMessages, contTokens);
+      result = await streamFromLLM(contMessages, contTokens);
       accumulated += result.text;
     }
 

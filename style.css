@@ -1064,7 +1064,7 @@ input:focus-visible {
   gap: 0.35rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 215, 0, 0.12);
-  color: rgba(223, 250, 255, 0.35);
+  color: rgba(223, 250, 255, 0.55);
   border-radius: 999px;
   padding: 0.35rem 1rem;
   font-size: 0.75rem;
@@ -1077,7 +1077,7 @@ input:focus-visible {
 
 .mode-btn:hover {
   border-color: rgba(255, 215, 0, 0.35);
-  color: rgba(223, 250, 255, 0.6);
+  color: rgba(223, 250, 255, 0.75);
 }
 
 .mode-btn.active {

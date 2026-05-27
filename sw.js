@@ -1,5 +1,5 @@
 // Cache version — increment for new deployments
-const CACHE = 'flexora-v1';
+const CACHE = 'flexora-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

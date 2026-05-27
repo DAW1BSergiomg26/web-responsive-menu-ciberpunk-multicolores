@@ -5,7 +5,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightning = document.getElementById('lightning');
   const form = document.getElementById('contact-form');
 
-  const API_BASE = window.API_BASE || '';
+  const API_BASE = window.API_BASE || (
+    location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+      ? ''
+      : 'https://flexora-api.onrender.com'
+  );
+  console.log('[Oracle] API_BASE:', API_BASE);
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -362,6 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
       modeBtns.forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       currentModel = btn.dataset.mode;
+      console.log('[Oracle] selected model:', currentModel);
     });
   });
 
