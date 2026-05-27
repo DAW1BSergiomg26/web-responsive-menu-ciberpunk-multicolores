@@ -20,7 +20,10 @@ flexora/  (Static Site — frontend, Render lo sirve como web estática)
   ├── style.css
   ├── tailwind.css
   ├── script.js
+  ├── manifest.webmanifest
+  ├── sw.js
   ├── assets/fonts/...
+  ├── assets/icons/...
   └── ...
 
 flexora-api/  (Web Service — backend Express, Render ejecuta Node)
@@ -30,7 +33,7 @@ flexora-api/  (Web Service — backend Express, Render ejecuta Node)
       └── .env.example
 ```
 
-El frontend llama al backend mediante `VITE_API_URL` (variable de entorno).
+El frontend llama al backend mediante `API_BASE` (inyectada en build via `scripts/inject-api-base.js`).
 
 ---
 
@@ -39,7 +42,7 @@ El frontend llama al backend mediante `VITE_API_URL` (variable de entorno).
 El backend es el que se comunica con OpenRouter. Debe crearse primero para conocer su URL.
 
 1. En el Dashboard de Render, haz clic en **"New +"** → **"Web Service"**.
-2. Conecta tu cuenta de GitHub y selecciona el repositorio `web-responsive-menu-ciberpunk-multicolores`.
+2. Conecta tu cuenta de GitHub y selecciona el repositorio.
 3. Configura el servicio:
 
    | Campo | Valor |
@@ -55,13 +58,11 @@ El backend es el que se comunica con OpenRouter. Debe crearse primero para conoc
 
 4. En la sección **"Environment Variables"**, añade:
 
-   ```
-   OPENROUTER_API_KEY = sk-or-v1-tu_clave_real_aqui
-   SITE_URL          = https://flexora.onrender.com
-   ```
-
-   > `OPENROUTER_API_KEY` es obligatoria. Sin ella el Oráculo no funciona.
-   > `SITE_URL` se usa para que OpenRouter sepa desde qué web se consulta.
+   | Variable | Valor | ¿Por qué? |
+   |----------|-------|-----------|
+   | `OPENROUTER_API_KEY` | `sk-or-v1-tu_clave_real_aqui` | Obligatoria. Sin ella el Oráculo no funciona. |
+   | `NODE_ENV` | `production` | Activa CORS estricto y modo producción. |
+   | `SITE_URL` | `https://flexora.onrender.com` | Se envía a OpenRouter como HTTP-Referer. |
 
 5. Haz clic en **"Create Web Service"**.
 6. Espera a que termine el build (2–3 minutos). Aparecerá un log en vivo.
@@ -75,16 +76,15 @@ El backend es el que se comunica con OpenRouter. Debe crearse primero para conoc
 
 ### Verificación del backend
 
-Abre en el navegador o con `curl`:
-
 ```bash
-# Debería devolver 404 (ruta raíz no definida, pero el servidor responde)
-curl https://flexora-api.onrender.com/api/oracle -X POST \
+curl https://flexora-api.onrender.com/api/health
+# → {"status":"ok","keyConfigured":true}
+
+curl -X POST https://flexora-api.onrender.com/api/oracle \
   -H "Content-Type: application/json" \
   -d '{"prompt":"Hola Zeus"}'
+# → Respuesta en streaming del Oráculo
 ```
-
-Si el servidor responde con un JSON (error o respuesta), el backend funciona.
 
 ---
 
@@ -99,17 +99,15 @@ Si el servidor responde con un JSON (error o respuesta), el backend funciona.
    | **Name** | `flexora` |
    | **Branch** | `main` |
    | **Root Directory** | (vacío — la raíz del repo) |
-   | **Build Command** | `npm run build:css` |
+   | **Build Command** | `npm run build` |
    | **Publish Directory** | `./` (la raíz) |
    | **Plan** | `Free` |
 
 4. En **"Environment Variables"**, añade:
 
-   ```
-   VITE_API_URL = https://flexora-api.onrender.com
-   ```
-
-   > Sin esta variable, el frontend intentará llamar a `/api/oracle` en su propio dominio (el Static Site) y fallará.
+   | Variable | Valor | ¿Por qué? |
+   |----------|-------|-----------|
+   | `API_BASE` | `https://flexora-api.onrender.com` | El build inyecta esta URL en `index.html` para que el frontend sepa dónde está el backend. |
 
 5. Haz clic en **"Create Static Site"**.
 6. Espera el build. Render te dará la URL:
@@ -124,17 +122,11 @@ Si el servidor responde con un JSON (error o respuesta), el backend funciona.
 2. Abre DevTools → Network.
 3. Escribe una pregunta al Oráculo y pulsa Enter.
 4. Verifica:
-   - La petición GET/POST va a `https://flexora-api.onrender.com/api/oracle`
+   - La petición POST va a `https://flexora-api.onrender.com/api/oracle`
    - La respuesta llega con streaming (texto aparece poco a poco)
    - No hay errores CORS ni 404
-
----
-
-## Paso 3 — Probar la URL final
-
-1. Abre `https://flexora.onrender.com` en el navegador.
-2. Comprueba que el menú, las animaciones, el scroll spy y el Oráculo funcionan.
-3. Envía una pregunta al Oráculo y confirma que el streaming funciona.
+5. Abre DevTools → Application → Manifest: debe mostrar la info PWA correctamente.
+6. Abre DevTools → Application → Service Workers: debe mostrar `sw.js` activado.
 
 ---
 
@@ -142,68 +134,73 @@ Si el servidor responde con un JSON (error o respuesta), el backend funciona.
 
 | Variable | Servicio | Dónde se usa | Ejemplo |
 |----------|----------|-------------|---------|
-| `OPENROUTER_API_KEY` | Web Service (backend) | `server/server.js` línea 32 | `sk-or-v1-...` |
-| `SITE_URL` | Web Service (backend) | `server/server.js` línea 44 (HTTP-Referer) | `https://flexora.onrender.com` |
-| `VITE_API_URL` | Static Site (frontend) | `script.js` línea 8 (`import.meta.env`) | `https://flexora-api.onrender.com` |
+| `OPENROUTER_API_KEY` | Web Service | `server/server.js` (llamada a OpenRouter) | `sk-or-v1-...` |
+| `NODE_ENV` | Web Service | CORS restrictivo en producción | `production` |
+| `SITE_URL` | Web Service | `server/server.js` (HTTP-Referer para OpenRouter) | `https://flexora.onrender.com` |
+| `API_BASE` | Static Site (build-time) | `scripts/inject-api-base.js` → `index.html` → `script.js` | `https://flexora-api.onrender.com` |
 
 ---
 
 ## Errores comunes
 
-### ❌ El Oráculo dice "no configurado"
+### ❌ El Oráculo dice "no está configurado"
 
 **Causa**: `OPENROUTER_API_KEY` no está definida en el Web Service.
 
-**Solución**: Ve al Dashboard → flexora-api → Environment → añade la variable → Deploy manual.
+**Solución**: Ve al Dashboard → flexora-api → Environment → añade la variable → Deploy manual (botón **Manual Deploy** → **Clear build cache & deploy**).
 
-### ❌ El frontend carga pero el Oráculo no responde (error CORS o 404)
+### ❌ Error CORS en la consola del navegador
 
-**Causa**: `VITE_API_URL` no está configurada o apunta al sitio incorrecto.
+**Causa**: El frontend está en un dominio no listado en `ALLOWED_ORIGINS` del backend.
 
-**Solución**: Verifica que apunte a `https://flexora-api.onrender.com` (sin barra final).
+**Solución**: Ve a flexora-api → Environment → añade `FRONTEND_URL` con la URL exacta del frontend (ej: `https://flexora.onrender.com`). Luego redeploya el backend.
 
-### ❌ La web se ve sin fuentes
+### ❌ El build del Static Site falla
 
-**Causa**: Las fuentes locales no se copiaron al build.
+**Causa**: Posiblemente falta `npm install` antes del build.
 
-**Solución**: Verifica que `assets/fonts/` existe en el repo y que los archivos `.woff2` están commiteados.
+**Solución**: Asegúrate de que el Root Directory está vacío y que `package.json` está en la raíz. Render ejecuta `npm install` automáticamente antes del build command en Static Sites.
 
-### ❌ El menú hamburguesa no abre
+### ❌ PWA no se instala (no aparece el icono +)
 
-**Causa**: Puede ser error de JS. Abre DevTools → Console y busca errores.
+**Causa**: El manifest no se carga, o falta HTTPS, o el service worker no se registra.
 
-### ❌ Error 502 "El Oráculo no responde"
+**Solución**: Render Static Site sirve HTTPS automáticamente. Verifica:
+- `manifest.webmanifest` se sirve en `https://flexora.onrender.com/manifest.webmanifest`
+- `sw.js` se sirve en `https://flexora.onrender.com/sw.js`
+- No hay errores en DevTools → Application → Manifest
 
-**Causa**: OpenRouter está caído, la API key es inválida, o el backend no puede conectar.
+### ❌ El frontend funciona pero el Oráculo responde 404
 
-**Solución**: Verifica la API key en https://openrouter.ai/keys. Mira los logs del Web Service en Render.
+**Causa**: `window.API_BASE` no se inyectó correctamente (apunta a `''` en vez de la URL de la API).
+
+**Solución**: Abre DevTools → Console y escribe `window.API_BASE`. Si es `''`, el build no inyectó la variable. Ve a flexora → Environment → verifica que `API_BASE` está configurada y redeploya.
 
 ### ❌ Primer request tarda ~30 segundos
 
 **Causa**: El plan Free de Render "duerme" el Web Service tras 15 minutos de inactividad. El primer request lo reactiva (cold start).
 
-**Solución**: Es normal en free tier. Usa [UptimeRobot](https://uptimerobot.com) (gratis) para hacer ping cada 10 min.
+**Solución**: Es normal en free tier. Usa [UptimeRobot](https://uptimerobot.com) (gratis) para hacer ping a `https://flexora-api.onrender.com/api/health` cada 10 min.
 
 ---
 
-## Comandos para probar local
+## Cómo probar local
 
 ```bash
-# 1. Instalar dependencias (desde la raíz del proyecto)
+# 1. Instalar dependencias
 npm install
 
-# 2. Construir CSS de Tailwind
+# 2. Construir CSS de Tailwind (opcional, Vite también lo sirve)
 npm run build:css
 
-# 3. Iniciar backend (en una terminal)
-npm run server
-
-# 4. Iniciar frontend (en otra terminal)
-npm run dev
-
-# O todo a la vez:
+# 3. Iniciar backend + frontend (todo a la vez)
 npm run dev:full
+
+# Frontend: http://localhost:3000
+# Backend:  http://localhost:3001
 ```
+
+En local, `window.API_BASE` se queda como `''` y Vite proxy redirige `/api` → `:3001`.
 
 ---
 
@@ -213,7 +210,8 @@ npm run dev:full
 - El Static Site no se duerme nunca (está siempre disponible).
 - Render re-despliega automáticamente cuando haces push a la rama `main`.
 - No subas el archivo `server/.env` al repositorio (está en `.gitignore`).
-- Si cambias la URL del Web Service, actualiza `VITE_API_URL` y redeploya.
+- Si cambias la URL del Web Service, actualiza `API_BASE` en el Static Site y redeploya.
+- El cache del Service Worker se invalida automáticamente al redeployar (cambia el contenido de `sw.js` → nuevo hash).
 
 ---
 

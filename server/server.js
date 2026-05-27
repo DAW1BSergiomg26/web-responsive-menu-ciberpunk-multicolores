@@ -16,6 +16,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
   process.env.SITE_URL,
+  process.env.FRONTEND_URL,
   'https://flexora-olimpo.netlify.app',
   'https://flexora.onrender.com',
 ].filter(Boolean);

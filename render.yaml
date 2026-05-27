@@ -10,6 +10,8 @@ services:
     envVars:
       - key: OPENROUTER_API_KEY
         sync: false
+      - key: NODE_ENV
+        value: production
       - key: SITE_URL
         value: https://flexora.onrender.com
 
@@ -17,7 +19,7 @@ services:
     name: flexora
     env: static
     region: ohio
-    buildCommand: npm run build:css
+    buildCommand: npm run build
     staticPublishPath: ./
     envVars:
       - key: API_BASE
