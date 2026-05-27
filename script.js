@@ -485,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init() {
       if (prefersReducedMotion) return;
+      if (this.auraEl) return;
       const container = document.querySelector('.oracle-container');
       if (!container) return;
       this.auraEl = document.createElement('div');
