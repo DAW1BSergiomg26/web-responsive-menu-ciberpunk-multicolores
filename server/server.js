@@ -116,8 +116,22 @@ const MODEL_CONFIGS = {
   },
 };
 
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'flexora-api',
+    message: 'Flexora API activa — Or\u00e1culo de Zeus',
+    time: new Date().toISOString(),
+  });
+});
+
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', keyConfigured: !!process.env.OPENROUTER_API_KEY });
+  res.json({
+    status: 'ok',
+    service: 'flexora-api',
+    keyConfigured: Boolean(process.env.OPENROUTER_API_KEY),
+    time: new Date().toISOString(),
+  });
 });
 
 app.post('/api/oracle', async (req, res) => {
