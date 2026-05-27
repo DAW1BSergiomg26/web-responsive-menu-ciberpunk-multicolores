@@ -1194,6 +1194,7 @@ input:focus-visible {
 }
 
 .oracle-mode-selector {
+}
 
 body[data-oracle-state] #lightning {
   animation-duration: var(--oracle-lightning-speed);
@@ -1278,4 +1279,26 @@ body[data-oracle-state="motivational"] .oracle-chat {
     animation: none !important;
     transition: none !important;
   }
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.retry-btn {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--gold, #ffd700);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--gold, #ffd700);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.retry-btn:hover {
+  background: var(--gold, #ffd700);
+  color: #050816;
 }

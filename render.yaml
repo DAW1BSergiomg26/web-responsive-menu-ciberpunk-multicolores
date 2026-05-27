@@ -32,7 +32,28 @@ services:
       - path: /style.css
         name: Cache-Control
         value: public, max-age=31536000, immutable
+      - path: /script.js
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /assets/icons/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /manifest.webmanifest
+        name: Cache-Control
+        value: public, max-age=3600, must-revalidate
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
     routes:
+      - type: rewrite
+        source: /sw.js
+        destination: /sw.js
+      - type: rewrite
+        source: /manifest.webmanifest
+        destination: /manifest.webmanifest
+      - type: rewrite
+        source: /assets/icons/:splat
+        destination: /assets/icons/:splat
       - type: rewrite
         source: /*
         destination: /index.html

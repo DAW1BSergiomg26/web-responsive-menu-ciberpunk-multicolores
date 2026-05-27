@@ -139,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const MAX_MEMORY = 20;
   let currentModel = 'sabio';
   let isStreaming = false;
+  let lastPrompt = '';
 
   // --- Helper functions ---
   function escapeHtml(text) {
@@ -252,24 +253,25 @@ document.addEventListener('DOMContentLoaded', () => {
       chatMessages.appendChild(el);
     });
     scrollToBottom();
-    oracleActions.style.display = 'flex';
+    oracleActions.classList.remove('is-hidden');
+    sendBtn.removeAttribute('disabled');
+    sendBtn.textContent = 'Invocar ⚡';
+    inputEl.removeAttribute('disabled');
+    charCountEl.classList.remove('text-red-400');
   }
 
-  function saveMessages(msgs) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_MEMORY))); } catch {}
+  function hidePlaceholder() {
+    if (placeholder) placeholder.style.display = 'none';
   }
 
-  function getMessages() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
-  }
-
-  function clearChat() {
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  // --- Clear chat ---
+  clearBtn.addEventListener('click', () => {
     chatMessages.innerHTML = '';
-    showPlaceholder();
-    oracleActions.style.display = 'none';
+    localStorage.removeItem('flexora_oracle_messages');
+    if (placeholder) placeholder.style.display = '';
+    oracleActions.classList.add('is-hidden');
     isStreaming = false;
-  }
+  });
 
   // --- Create message element ---
   function createMessageElement(role, content, timestamp, isError) {
@@ -310,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const msgs = getMessages();
     msgs.push({ role, content, timestamp: ts });
     saveMessages(msgs);
-    oracleActions.style.display = 'flex';
+    oracleActions.classList.remove('is-hidden');
     return el;
   }
 
@@ -387,6 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const question = questionInput.value.trim();
     if (!question) { shakeField(); return; }
+    lastPrompt = question;
 
     const submitBtn = document.getElementById('oracle-submit');
     submitBtn.disabled = true;
@@ -433,19 +436,32 @@ document.addEventListener('DOMContentLoaded', () => {
       updateStreaming(contentDiv, cursor, fullResponse, true);
     } catch (error) {
       console.error('Error del Oráculo:', error);
-      let message;
+      let message, isOffline = false;
       if (error instanceof TypeError && (!error.message || error.message.includes('fetch'))) {
-        message = 'No se puede conectar con el backend. Asegúrate de que el servidor Express esté corriendo en otra terminal con: <code>npm run server</code>';
+        message = 'El Olimpo est\u00e1 fuera de l\u00ednea. Revisa tu conexi\u00f3n o vuelve a intentarlo.';
+        isOffline = true;
       } else if (error.message && error.message.includes('401')) {
-        message = 'La API key de OpenRouter no es válida o no está configurada. Revisa <code>server/.env</code>.';
+        message = 'La API key de OpenRouter no es v\u00e1lida o no est\u00e1 configurada. Revisa <code>server/.env</code>.';
       } else {
         message = error.message || 'El rayo de Zeus ha fallado. Intenta de nuevo.';
       }
       const errEl = createMessageElement('assistant', message, Date.now(), true);
       chatMessages.removeChild(contentDiv.closest('.chat-message'));
+      if (isOffline) {
+        const retryBtn = document.createElement('button');
+        retryBtn.className = 'retry-btn';
+        retryBtn.textContent = 'Reintentar';
+        retryBtn.type = 'button';
+        retryBtn.addEventListener('click', () => {
+          questionInput.value = lastPrompt;
+          questionInput.dispatchEvent(new Event('input', { bubbles: true }));
+          submitBtn.click();
+        });
+        errEl.querySelector('.chat-content').appendChild(retryBtn);
+      }
       chatMessages.appendChild(errEl);
       scrollToBottom();
-      oracleActions.style.display = 'flex';
+      oracleActions.classList.remove('is-hidden');
     } finally {
       OracleFX.relax();
       submitBtn.disabled = false;
@@ -592,6 +608,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- SERVICE WORKER (PWA) ---
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('[PWA] Service Worker registration failed:', err.message);
+    });
   }
 });

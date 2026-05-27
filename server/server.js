@@ -12,7 +12,20 @@ dotenv.config({ path: join(__dirname, '.env') }); // Ignorado si .env no existe 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  process.env.SITE_URL,
+  'https://flexora-olimpo.netlify.app',
+  'https://flexora.onrender.com',
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin) || process.env.NODE_ENV !== 'production') return cb(null, true);
+    cb(null, false);
+  },
+}));
 app.use(express.json({ limit: '10kb' }));
 
 const MAX_PROMPT_LENGTH = 2000;
@@ -254,6 +267,13 @@ app.post('/api/oracle', async (req, res) => {
       res.write(`\n[Error: ${error.message}]`);
     }
     res.end();
+  }
+});
+
+app.use((err, _req, res, _next) => {
+  console.error('Unhandled error:', err.message);
+  if (!res.headersSent) {
+    res.status(500).json({ error: 'Error interno del Oráculo.' });
   }
 });
 

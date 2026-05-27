@@ -1,9 +1,12 @@
 {
-  "name": "web-responsive-menu-ciberpunk-multicolores",
+  "private": true,
+  "name": "flexora-olimpo",
   "version": "1.0.0",
-  "description": "",
-  "main": "script.js",
+  "description": "Flexora — Templo Digital del Olimpo. Oráculo IA.",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 3000 --open",
     "server": "node server/server.js",

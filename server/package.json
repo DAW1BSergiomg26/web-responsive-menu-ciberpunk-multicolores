@@ -1,7 +1,12 @@
 {
+  "private": true,
   "name": "flexora-api",
   "version": "1.0.0",
+  "description": "Flexora API — Oracle de Zeus backend",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server.js"
   },

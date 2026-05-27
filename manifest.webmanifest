@@ -1,8 +1,10 @@
 {
+  "id": "/",
   "name": "Flexora — Templo del Olimpo 3000",
   "short_name": "Flexora",
   "description": "Templo Digital del Olimpo. Oráculo IA con inteligencia divina.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#050816",
   "theme_color": "#ffd700",
