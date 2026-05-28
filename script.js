@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const escaped = escapeHtml(decoded);
       const highlighted = highlightCode(escaped, lang);
       const langLabel = lang ? `<span class="code-lang-label">${escapeHtml(lang)}</span>` : '';
-      codeBlocks.push(`<div class="code-block-wrapper">${langLabel}<pre><code>${highlighted}</code></pre></div>`);
+      codeBlocks.push(`<div class="code-block-wrapper">${langLabel}<button class="copy-code-btn" type="button" title="Copiar código">📋</button><pre><code>${highlighted}</code></pre></div>`);
       return `%%CODE_${idx}%%`;
     });
 
@@ -608,7 +608,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const submitBtn = document.getElementById('oracle-submit');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = "Consultando... 🌩️";
+    submitBtn.innerHTML = '<span class="btn-spinner"></span> Consultando...';
+    submitBtn.classList.add('is-loading');
     isStreaming = true;
 
     ensureActiveConversation();
@@ -686,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(timeoutId);
       window.OracleFX.relax();
       const sb = document.getElementById('oracle-submit');
-      if (sb) { sb.disabled = false; sb.innerHTML = "Invocar \u26A1"; }
+      if (sb) { sb.disabled = false; sb.innerHTML = "Invocar \u26A1"; sb.classList.remove('is-loading'); }
       questionInput.value = "";
       if (charCount) { charCount.textContent = '0/2000'; charCount.style.color = 'rgba(223, 250, 255, 0.35)'; }
       isStreaming = false;
@@ -717,6 +718,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!e.target.closest('#conversations-panel') && !e.target.closest('#toggle-conversations')) {
       toggleConvPanel(false);
     }
+  });
+
+  // --- Copy code button handler ---
+  chatMessages.addEventListener('click', (e) => {
+    const btn = e.target.closest('.copy-code-btn');
+    if (!btn) return;
+    const pre = btn.closest('.code-block-wrapper')?.querySelector('code');
+    if (!pre) return;
+    const code = pre.textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = '✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋'; btn.classList.remove('copied'); }, 2000);
+    }).catch(() => {
+      btn.textContent = '✕';
+      setTimeout(() => { btn.textContent = '📋'; }, 1500);
+    });
   });
 
   // --- OracleFX: Visual Reactive Engine ---
