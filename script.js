@@ -145,10 +145,199 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('[Oracle] submit button:', oracleSubmit);
 
   const STORAGE_KEY = 'flexora_oracle_messages';
+  const CONV_KEY = 'flexora_conversations';
+  const ACTIVE_CONV_KEY = 'flexora_active_conversation';
   const MAX_MEMORY = 20;
   let currentModel = 'sabio';
   let isStreaming = false;
   let lastPrompt = '';
+
+  // --- Message persistence (must be before conversation management) ---
+  function getMessages() {
+    let msgs;
+    try { msgs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { msgs = []; }
+    return msgs;
+  }
+
+  function saveMessages(msgs) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_MEMORY))); } catch {}
+  }
+
+  // --- Shared helpers (must be before conversation management) ---
+  function formatTime(ts) {
+    if (ts == null || ts === '') return new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    return new Date(ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function scrollToBottom() {
+    chatMessages.parentElement.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function hidePlaceholder() {
+    if (chatPlaceholder) chatPlaceholder.style.display = 'none';
+  }
+
+  function showPlaceholder() {
+    if (chatPlaceholder && chatMessages.children.length === 0) {
+      chatPlaceholder.style.display = '';
+    }
+  }
+
+  // --- Conversation management ---
+  function getConversations() {
+    try { return JSON.parse(localStorage.getItem(CONV_KEY)) || []; } catch { return []; }
+  }
+
+  function saveConversations(convs) {
+    try { localStorage.setItem(CONV_KEY, JSON.stringify(convs)); } catch {}
+  }
+
+  function getActiveConvId() {
+    return localStorage.getItem(ACTIVE_CONV_KEY);
+  }
+
+  function setActiveConvId(id) {
+    if (id) localStorage.setItem(ACTIVE_CONV_KEY, id);
+    else localStorage.removeItem(ACTIVE_CONV_KEY);
+  }
+
+  function generateConvTitle(messages) {
+    const first = messages.find(m => m.role === 'user');
+    if (!first) return 'Conversación';
+    const words = first.content.trim().split(/\s+/).slice(0, 6).join(' ');
+    return words.length > 60 ? words.substring(0, 60) + '…' : words;
+  }
+
+  function ensureActiveConversation() {
+    let convs = getConversations();
+    let activeId = getActiveConvId();
+    let conv = convs.find(c => c.id === activeId);
+    if (!conv) {
+      conv = {
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+        title: 'Nueva conversación',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        messages: [],
+      };
+      convs.unshift(conv);
+      saveConversations(convs);
+      setActiveConvId(conv.id);
+    }
+    return conv;
+  }
+
+  function syncMessagesToConversation() {
+    const msgs = getMessages();
+    const convs = getConversations();
+    const activeId = getActiveConvId();
+    const conv = convs.find(c => c.id === activeId);
+    if (conv) {
+      if (msgs.length > 0) conv.title = generateConvTitle(msgs);
+      conv.updatedAt = Date.now();
+      conv.messages = JSON.parse(JSON.stringify(msgs));
+      saveConversations(convs);
+    }
+    updateConvList();
+  }
+
+  function saveAndStartNewConversation() {
+    const msgs = getMessages();
+    syncMessagesToConversation();
+    chatMessages.innerHTML = '';
+    if (msgs.length > 0) localStorage.removeItem(STORAGE_KEY);
+    setActiveConvId(null);
+    ensureActiveConversation();
+    showPlaceholder();
+    oracleActions.classList.add('is-hidden');
+    isStreaming = false;
+  }
+
+  function loadConversation(convId) {
+    const convs = getConversations();
+    const conv = convs.find(c => c.id === convId);
+    if (!conv) return;
+    syncMessagesToConversation();
+    saveMessages(conv.messages);
+    chatMessages.innerHTML = '';
+    setActiveConvId(conv.id);
+    if (conv.messages.length === 0) {
+      showPlaceholder();
+      oracleActions.classList.add('is-hidden');
+    } else {
+      hidePlaceholder();
+      conv.messages.forEach(m => {
+        const el = createMessageElement(m.role, m.content, m.timestamp);
+        chatMessages.appendChild(el);
+      });
+      scrollToBottom();
+      oracleActions.classList.remove('is-hidden');
+    }
+    toggleConvPanel(false);
+  }
+
+  function deleteConversation(convId) {
+    let convs = getConversations();
+    const idx = convs.findIndex(c => c.id === convId);
+    if (idx === -1) return;
+    convs.splice(idx, 1);
+    saveConversations(convs);
+    if (getActiveConvId() === convId) {
+      setActiveConvId(null);
+      if (getMessages().length > 0) {
+        chatMessages.innerHTML = '';
+        localStorage.removeItem(STORAGE_KEY);
+        showPlaceholder();
+        oracleActions.classList.add('is-hidden');
+      }
+      ensureActiveConversation();
+    }
+    updateConvList();
+  }
+
+  function toggleConvPanel(show) {
+    const panel = document.getElementById('conversations-panel');
+    if (!panel) return;
+    if (show === undefined) panel.classList.toggle('visible');
+    else if (show) panel.classList.add('visible');
+    else panel.classList.remove('visible');
+    if (panel.classList.contains('visible')) updateConvList();
+  }
+
+  function updateConvList() {
+    const list = document.getElementById('conversation-list');
+    if (!list) return;
+    const convs = getConversations();
+    const activeId = getActiveConvId();
+    list.innerHTML = '';
+    if (convs.length === 0) {
+      list.innerHTML = '<div class="conv-empty">Aún no hay pergaminos guardados</div>';
+      return;
+    }
+    convs.forEach(conv => {
+      const item = document.createElement('div');
+      item.className = 'conv-item' + (conv.id === activeId ? ' active' : '');
+      const info = document.createElement('div');
+      info.className = 'conv-info';
+      info.onclick = () => loadConversation(conv.id);
+      const title = document.createElement('div');
+      title.className = 'conv-title';
+      title.textContent = conv.title;
+      const meta = document.createElement('div');
+      meta.className = 'conv-meta';
+      meta.textContent = formatTime(conv.updatedAt) + ' · ' + conv.messages.length + ' mensajes';
+      info.appendChild(title);
+      info.appendChild(meta);
+      const del = document.createElement('button');
+      del.className = 'conv-delete';
+      del.textContent = '✕';
+      del.title = 'Eliminar pergamino';
+      del.onclick = e => { e.stopPropagation(); deleteConversation(conv.id); };
+      item.appendChild(info);
+      item.appendChild(del);
+      list.appendChild(item);
+    });
+  }
 
   // --- Guard: abort if required elements are missing ---
   if (!chatMessages || !questionInput || !oracleSubmit) {
@@ -171,24 +360,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
       .replace(/&amp;/g, '&');
-  }
-
-  function formatTime(ts) {
-    return new Date(ts).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  function scrollToBottom() {
-    chatMessages.parentElement.scrollTop = chatMessages.scrollHeight;
-  }
-
-  function hidePlaceholder() {
-    if (chatPlaceholder) chatPlaceholder.style.display = 'none';
-  }
-
-  function showPlaceholder() {
-    if (chatPlaceholder && chatMessages.children.length === 0) {
-      chatPlaceholder.style.display = '';
-    }
   }
 
   // --- Intent & Emotion Detection ---
@@ -279,23 +450,32 @@ document.addEventListener('DOMContentLoaded', () => {
     return h;
   }
 
-  // --- Message persistence ---
-  function getMessages() {
-    let msgs;
-    try { msgs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { msgs = []; }
-    return msgs;
-  }
-
-  function saveMessages(msgs) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs.slice(-MAX_MEMORY))); } catch {}
-  }
-
   function loadMessages() {
-    let msgs;
-    try { msgs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { msgs = []; }
-    if (msgs.length === 0) return;
+    let activeId = getActiveConvId();
+    let convs = getConversations();
+    // Migrate legacy storage if no active conversation exists
+    if (!activeId || !convs.find(c => c.id === activeId)) {
+      let legacy;
+      try { legacy = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { legacy = []; }
+      if (legacy.length > 0) {
+        const conv = {
+          id: Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+          title: generateConvTitle(legacy),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          messages: legacy,
+        };
+        convs.unshift(conv);
+        saveConversations(convs);
+        setActiveConvId(conv.id);
+      }
+    }
+    const conv = convs.find(c => c.id === getActiveConvId());
+    if (!conv || conv.messages.length === 0) return;
+    // Sync STORAGE_KEY to the loaded conversation so getMessages() returns correct history
+    saveMessages(conv.messages);
     hidePlaceholder();
-    msgs.forEach(m => {
+    conv.messages.forEach(m => {
       const el = createMessageElement(m.role, m.content, m.timestamp);
       chatMessages.appendChild(el);
     });
@@ -305,15 +485,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sb) { sb.removeAttribute('disabled'); sb.textContent = 'Invocar ⚡'; }
     questionInput?.removeAttribute('disabled');
     charCount?.classList.remove('text-red-400');
+    // Sync legacy storage for backward compat
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(conv.messages.slice(-MAX_MEMORY))); } catch {}
   }
 
-  // --- Clear chat ---
+  // --- Clear chat / New conversation ---
   clearButton?.addEventListener('click', () => {
-    chatMessages.innerHTML = '';
-    localStorage.removeItem('flexora_oracle_messages');
-    if (chatPlaceholder) chatPlaceholder.style.display = '';
-    oracleActions.classList.add('is-hidden');
-    isStreaming = false;
+    saveAndStartNewConversation();
   });
 
   // --- Create message element ---
@@ -361,11 +539,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Streaming assistant message ---
   function createStreamingMessage() {
-    const msgs = getMessages();
-    const entry = { role: 'assistant', content: '', timestamp: Date.now() };
-    msgs.push(entry);
-    saveMessages(msgs);
-    const el = createMessageElement('assistant', '', entry.timestamp);
+    const ts = Date.now();
+    const el = createMessageElement('assistant', '', ts);
     chatMessages.appendChild(el);
     scrollToBottom();
     const contentDiv = el.querySelector('.chat-content');
@@ -373,23 +548,22 @@ document.addEventListener('DOMContentLoaded', () => {
     cursor.className = 'typing-cursor';
     cursor.setAttribute('aria-hidden', 'true');
     contentDiv.appendChild(cursor);
-    return { el, contentDiv, cursor, entry };
+    return { el, contentDiv, cursor, ts };
   }
 
   function updateStreaming(contentDiv, cursor, text, done) {
     contentDiv.innerHTML = renderMarkdown(text);
-    if (!done) contentDiv.appendChild(cursor);
-    else {
-      const el = contentDiv.closest('.chat-message');
-      if (el) {
-        const ts = el.querySelector('.chat-timestamp');
-        const msgs = getMessages();
-        const last = msgs[msgs.length - 1];
-        if (last) { last.content = text; last.timestamp = Date.now(); }
-        saveMessages(msgs);
-        if (ts) ts.textContent = formatTime(Date.now());
-      }
+    if (!done) { contentDiv.appendChild(cursor); scrollToBottom(); return; }
+    const now = Date.now();
+    const el = contentDiv.closest('.chat-message');
+    if (el) {
+      const tsEl = el.querySelector('.chat-timestamp');
+      if (tsEl) tsEl.textContent = formatTime(now);
     }
+    const msgs = getMessages();
+    msgs.push({ role: 'assistant', content: text, timestamp: now });
+    saveMessages(msgs);
+    syncMessagesToConversation();
     scrollToBottom();
   }
 
@@ -437,10 +611,15 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.innerHTML = "Consultando... 🌩️";
     isStreaming = true;
 
+    ensureActiveConversation();
     addMessage('user', question);
     const { contentDiv, cursor } = createStreamingMessage();
     showSpinner(contentDiv);
     scrollToBottom();
+
+    const controller = new AbortController();
+    const TIMEOUT_MS = 45000;
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
       const intent = detectIntent(question);
@@ -452,12 +631,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const allMessages = getMessages();
       const recentMessages = allMessages.slice(-4);
-      console.log(`[Oracle] context optimized → ${recentMessages.length} mensajes enviados (de ${allMessages.length} totales)`);
+      console.log(`[Oracle] context optimizado → ${recentMessages.length} msgs (de ${allMessages.length})`);
       const history = recentMessages.map(m => ({ role: m.role, content: m.content.slice(-1500) }));
       const res = await fetch(`${API_BASE}/api/oracle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: question, messages: history, model: currentModel, intent, emotion }),
+        signal: controller.signal,
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'Error desconocido del oráculo' }));
@@ -468,42 +648,42 @@ document.addEventListener('DOMContentLoaded', () => {
       let fullResponse = '';
       contentDiv.innerHTML = '';
       contentDiv.appendChild(cursor);
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        fullResponse += decoder.decode(value, { stream: true });
-        updateStreaming(contentDiv, cursor, fullResponse, false);
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          fullResponse += decoder.decode(value, { stream: true });
+          updateStreaming(contentDiv, cursor, fullResponse, false);
+        }
+      } catch (streamErr) {
+        if (streamErr.name === 'AbortError') throw streamErr;
+        console.error('[Oracle] stream read error:', streamErr);
+        fullResponse += '\n[Error al leer la respuesta del Oráculo]';
       }
       updateStreaming(contentDiv, cursor, fullResponse, true);
     } catch (error) {
-      console.error('Error del Oráculo:', error);
-      let message, isOffline = false;
-      if (error instanceof TypeError && (!error.message || error.message.includes('fetch'))) {
+      clearTimeout(timeoutId);
+      const isTimeout = error.name === 'AbortError';
+      console.error('[Oracle] error:', isTimeout ? 'Timeout 45s' : error.message);
+      let message;
+      if (isTimeout) {
+        message = 'El Oráculo tardó demasiado en responder (45s). Intenta con una pregunta más corta o cambia de modo.';
+      } else if (error instanceof TypeError && (!error.message || error.message.includes('fetch'))) {
         message = 'El Olimpo est\u00e1 fuera de l\u00ednea. Revisa tu conexi\u00f3n o vuelve a intentarlo.';
-        isOffline = true;
       } else if (error.message && error.message.includes('401')) {
         message = 'La API key de OpenRouter no es v\u00e1lida o no est\u00e1 configurada. Revisa <code>server/.env</code>.';
       } else {
         message = error.message || 'El rayo de Zeus ha fallado. Intenta de nuevo.';
       }
       const errEl = createMessageElement('assistant', message, Date.now(), true);
-      chatMessages.removeChild(contentDiv.closest('.chat-message'));
-      if (isOffline) {
-        const retryBtn = document.createElement('button');
-        retryBtn.className = 'retry-btn';
-        retryBtn.textContent = 'Reintentar';
-        retryBtn.type = 'button';
-        retryBtn.addEventListener('click', () => {
-          questionInput.value = lastPrompt;
-          questionInput.dispatchEvent(new Event('input', { bubbles: true }));
-          submitOracle();
-        });
-        errEl.querySelector('.chat-content').appendChild(retryBtn);
+      if (contentDiv && contentDiv.closest('.chat-message')) {
+        chatMessages.removeChild(contentDiv.closest('.chat-message'));
       }
       chatMessages.appendChild(errEl);
       scrollToBottom();
       oracleActions.classList.remove('is-hidden');
     } finally {
+      clearTimeout(timeoutId);
       window.OracleFX.relax();
       const sb = document.getElementById('oracle-submit');
       if (sb) { sb.disabled = false; sb.innerHTML = "Invocar \u26A1"; }
@@ -523,6 +703,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Load messages on startup ---
   loadMessages();
+
+  // --- Pergaminos panel events ---
+  const toggleConvBtn = document.getElementById('toggle-conversations');
+  toggleConvBtn?.addEventListener('click', () => toggleConvPanel());
+
+  const closeConvBtn = document.getElementById('close-conv-panel');
+  closeConvBtn?.addEventListener('click', () => toggleConvPanel(false));
+
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('conversations-panel');
+    if (!panel || !panel.classList.contains('visible')) return;
+    if (!e.target.closest('#conversations-panel') && !e.target.closest('#toggle-conversations')) {
+      toggleConvPanel(false);
+    }
+  });
 
   // --- OracleFX: Visual Reactive Engine ---
   window.OracleFX = window.OracleFX || {
