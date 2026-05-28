@@ -101,40 +101,40 @@ function buildSystemPrompt(model, intent, emotion) {
 }
 
 const MODELS = {
-  rapido: process.env.MODEL_RAPIDO || 'mistralai/mistral-7b-instruct:free',
+  rapido: process.env.MODEL_RAPIDO || 'liquid/lfm-2.5-1.2b-instruct:free',
   sabio: process.env.MODEL_SABIO || 'google/gemini-2.0-flash-001',
   zeus: process.env.MODEL_ZEUS || 'openai/gpt-4o-mini',
-  'big-pickle': 'big-pickle',
+  'big-pickle': process.env.MODEL_BIG_PICKLE || 'openai/gpt-oss-120b:free',
 };
 
 const MODEL_CONFIGS = {
   rapido: {
     label: '⚡ Rápido',
     model: MODELS.rapido,
-    baseMaxTokens: 400,
-    maxTokensLimit: 800,
-    continuationMaxTokens: 300,
+    baseMaxTokens: 768,
+    maxTokensLimit: 1536,
+    continuationMaxTokens: 384,
   },
   sabio: {
     label: '📖 Sabio',
     model: MODELS.sabio,
-    baseMaxTokens: 800,
-    maxTokensLimit: 1200,
-    continuationMaxTokens: 500,
+    baseMaxTokens: 1536,
+    maxTokensLimit: 3072,
+    continuationMaxTokens: 768,
   },
   zeus: {
     label: '👑 Zeus',
     model: MODELS.zeus,
-    baseMaxTokens: 1200,
-    maxTokensLimit: 2000,
-    continuationMaxTokens: 800,
+    baseMaxTokens: 2048,
+    maxTokensLimit: 4096,
+    continuationMaxTokens: 1024,
   },
   'big-pickle': {
     label: '🥒 Big Pickle',
     model: MODELS['big-pickle'],
-    baseMaxTokens: 800,
-    maxTokensLimit: 1200,
-    continuationMaxTokens: 500,
+    baseMaxTokens: 2048,
+    maxTokensLimit: 4096,
+    continuationMaxTokens: 1024,
   },
 };
 
@@ -152,7 +152,6 @@ app.get('/api/health', (_req, res) => {
     status: 'ok',
     service: 'flexora-api',
     keyConfigured: Boolean(process.env.OPENROUTER_API_KEY),
-    bigPickleConfigured: Boolean(process.env.OPENCODE_API_KEY),
     time: new Date().toISOString(),
   });
 });
@@ -168,13 +167,13 @@ app.post('/api/oracle', async (req, res) => {
     return res.status(400).json({ error: `El mensaje es demasiado largo (máx. ${MAX_PROMPT_LENGTH} caracteres).` });
   }
 
-  const isBigPickle = model === 'big-pickle';
-  const apiKey = isBigPickle ? process.env.OPENCODE_API_KEY : process.env.OPENROUTER_API_KEY;
-  const keyName = isBigPickle ? 'OPENCODE_API_KEY' : 'OPENROUTER_API_KEY';
+  const useCustomEndpoint = model === 'big-pickle' && Boolean(process.env.OPENCODE_API_KEY);
+  const apiKey = useCustomEndpoint ? process.env.OPENCODE_API_KEY : process.env.OPENROUTER_API_KEY;
+  const keyName = useCustomEndpoint ? 'OPENCODE_API_KEY' : 'OPENROUTER_API_KEY';
 
   if (!apiKey) {
     console.error(`${keyName} no configurada`);
-    const msg = isBigPickle
+    const msg = useCustomEndpoint
       ? 'El modo Big Pickle no está configurado. Añade OPENCODE_API_KEY en el servidor.'
       : 'El Oráculo no está configurado. Contacta al desarrollador.';
     return res.status(500).json({ error: msg });
@@ -199,37 +198,34 @@ app.post('/api/oracle', async (req, res) => {
     { role: 'user', content: prompt.trim() },
   ];
 
-  async function streamFromLLM(messageArray, tokens) {
-    const endpoint = isBigPickle
-      ? 'https://opencode.ai/zen/v1/chat/completions'
-      : 'https://openrouter.ai/api/v1/chat/completions';
-    const authHeader = `Bearer ${apiKey}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: authHeader,
-    };
-    if (!isBigPickle) {
-      headers['HTTP-Referer'] = process.env.SITE_URL || 'http://localhost:3000';
-      headers['X-Title'] = 'Flexora - Oracle de Zeus';
-    }
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model: modelConfig.model,
-        messages: messageArray,
-        max_tokens: tokens,
-        temperature: 0.8,
-        stream: true,
-      }),
-      signal: AbortSignal.timeout(30000),
-    });
+   async function streamFromLLM(messageArray, tokens) {
+     // Always use OpenRouter - removed custom endpoint dependency
+     const endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+     const authHeader = `Bearer ${process.env.OPENROUTER_API_KEY}`;
+     const headers = {
+       'Content-Type': 'application/json',
+       Authorization: authHeader,
+       'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
+       'X-Title': 'Flexora - Oracle de Zeus',
+     };
+     const response = await fetch(endpoint, {
+       method: 'POST',
+       headers,
+       body: JSON.stringify({
+         model: modelConfig.model,
+         messages: messageArray,
+         max_tokens: tokens,
+         temperature: 0.8,
+         stream: true,
+       }),
+       signal: AbortSignal.timeout(30000),
+     });
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
       let detail = 'El modelo no responde. Los cielos están turbulentos.';
       try { const parsed = JSON.parse(errorBody); if (parsed.error?.message) detail = parsed.error.message; } catch {}
-      console.error(`LLM error (${isBigPickle ? 'OpenCode' : 'OpenRouter'}):`, response.status, errorBody.slice(0, 300));
+      console.error(`LLM error (${useCustomEndpoint ? 'OpenCode' : 'OpenRouter'}):`, response.status, errorBody.slice(0, 300));
       const err = new Error(detail);
       err.statusCode = response.status;
       throw err;
@@ -305,20 +301,25 @@ app.post('/api/oracle', async (req, res) => {
     }
 
     res.end();
-  } catch (error) {
-    if (error.name === 'TimeoutError') {
-      if (!res.headersSent) return res.status(504).json({ error: 'El Oráculo tardó demasiado en responder.' });
-      res.write('\n[El Oráculo tardó demasiado. Intenta con una pregunta más corta.]');
-    } else if (error.statusCode) {
-      if (!res.headersSent) return res.status(502).json({ error: `${error.message} (${error.statusCode})` });
-      res.write(`\n[Error del Oráculo: ${error.message}]`);
-    } else {
-      console.error('Oracle error:', error.message);
-      if (!res.headersSent) return res.status(500).json({ error: 'El rayo de Zeus ha fallado. Intenta de nuevo.' });
-      res.write(`\n[Error: ${error.message}]`);
-    }
-    res.end();
+} catch (error) {
+  const modelName = MODELS[model]?.model || model || 'unknown';
+  const errorMsg = error?.message || 'Error desconocido';
+  
+  if (error.name === 'TimeoutError') {
+    if (!res.headersSent) return res.status(504).json({ error: 'El Oráculo tardó demasiado en responder.' });
+    res.write('\n[El Oráculo tardó demasiado. Intenta con una pregunta más corta.]');
+  } else if (error.statusCode) {
+    const statusError = `${error.statusCode} - ${errorMsg}`;
+    console.error(`[Oráculo] Error en modo "${model}" (modelo "${modelName}"): ${statusError}`);
+    if (!res.headersSent) return res.status(502).json({ error: `Error en modo ${model} (${modelName}): ${statusError}` });
+    res.write(`\n[Error del Oráculo: ${statusError}]`);
+  } else {
+    console.error(`[Oráculo] Error en modo "${model}" (modelo "${modelName}"): ${errorMsg}`);
+    if (!res.headersSent) return res.status(500).json({ error: `Error en modo ${model} (${modelName}): ${errorMsg}` });
+    res.write(`\n[Error: ${errorMsg}]`);
   }
+  res.end();
+}
 });
 
 app.use((err, _req, res, _next) => {
